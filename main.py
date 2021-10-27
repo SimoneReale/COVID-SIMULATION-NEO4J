@@ -1,6 +1,7 @@
 from os import close
 from random import randint
 from py2neo import Graph
+import conf
 
 
 
@@ -30,7 +31,6 @@ def createFamily(db, list_relatives):
 
 def createPopulation(db, n):
     f = open('nomi_italiani.txt', 'r')
-
 
     for i in range(n):
         
@@ -63,12 +63,10 @@ def createPopulation(db, n):
     return
 
 
-
-
 if __name__ == "__main__":
     #database connection
-    graph = Graph("bolt://localhost:7687", auth=("neo4j", "sr"))
-    createPopulation(graph, 100)
+    graph = Graph("bolt://localhost:7687", auth=(conf.username, conf.password))
+    createPopulation(graph, conf.pop_num)
 
 
     
