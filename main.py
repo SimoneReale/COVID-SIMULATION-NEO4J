@@ -1,72 +1,74 @@
 from os import close
 from random import randint
-from neo4j import GraphDatabase
-
-class Neo4jInstance:
-
-    def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
-
-    def close(self):
-        self.driver.close()
-
-    def create_dataset(self, n):
-        with self.driver.session() as session:
-            list_of_people = createPopulation(n)
-            session.write_transaction(self._create_nodes, list_of_people)
-            
-
-    @staticmethod
-    def _create_nodes(tx, list):
-
-        for i in range(len(list)):
-
-            tx.run("CREATE (a:Person) "
-                        "SET a.name = $name "
-                        "SET a.age = $age"
-                        , name = list[i].get("name"), age = list[i].get("age"))
-
-        return
+from py2neo import Graph
 
 
 
 
-
-def createPerson():
-    f = open('nomi_italiani.txt','r')
-    persona = {}
-    persona["name"] = f.readline().strip('\n')
-    persona["age"] = randint(0, 100)
-    f.close()
-    return persona
-
-
-
-
-def createPopulation(n):
+def createFamily(db, list_relatives):
     
-    list_people =[]
+    for i in range(0, len(list_relatives)):
+        for j in range(i+1, len(list_relatives)):
+            if (7 < randint(0, 10)):
+                db.run("MATCH (a:Person), (b:Person) "
+                        "WHERE a.name = $name1 AND b.name = $name2 "
+                        "CREATE (a)-[r:FAMILY_CONTACT]->(b)"
+                        , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))
+                
+                #relazione inversa
+                db.run("MATCH (a:Person), (b:Person) "
+                        "WHERE a.name = $name1 AND b.name = $name2 "
+                        "CREATE (a)<-[r:FAMILY_CONTACT]-(b)"
+                        , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))
+
+    return             
+
+
+
+
+
+
+def createPopulation(db, n):
+    f = open('nomi_italiani.txt', 'r')
+
 
     for i in range(n):
-        persona = createPerson()
+        
+        family_list = []
+        pater_familias = {}
+        pater_familias["name"] = f.readline().strip('\n')
+        pater_familias["age"] = randint(0, 100)
+        family_list.append(pater_familias)
+
+        db.run("CREATE (a:Person) "
+                        "SET a.name = $name "
+                        "SET a.age = $age"
+                        , name = pater_familias.get("name"), age = pater_familias.get("age"))
 
         for j in range(randint(0,6)):
-            parente = createPerson()
-            list_people.append(parente)
+            parente = {}
+            parente["name"] = f.readline().strip('\n')
+            parente["age"] = randint(0, 100)
+            family_list.append(parente)
+            
+            db.run("CREATE (a:Person) "
+                        "SET a.name = $name "
+                        "SET a.age = $age"
+                        , name = parente.get("name"), age = parente.get("age"))
 
 
-        list_people.append(persona)
+        createFamily(db, family_list)
 
-    return list_people
-
-
+    f.close()
+    return
 
 
 
 
 if __name__ == "__main__":
-    
-    dbNeo = Neo4jInstance("bolt://localhost:7687", "neo4j", "sr")
-    dbNeo.create_dataset(10)
-    dbNeo.close()
+    #database connection
+    graph = Graph("bolt://localhost:7687", auth=("neo4j", "sr"))
+    createPopulation(graph, 100)
+
+
     
