@@ -45,7 +45,7 @@ def createPopulation(db, n):
                         "SET a.age = $age"
                         , name = pater_familias.get("name"), age = pater_familias.get("age"))
 
-        for j in range(randint(0,6)):
+        for j in range(randint(0,10)):
             parente = {}
             parente["name"] = f.readline().strip('\n')
             parente["age"] = randint(0, 100)
