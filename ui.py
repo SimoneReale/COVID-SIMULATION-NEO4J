@@ -153,6 +153,9 @@ def createMenuFrame():
 
     button_frame5 = Button(frame_menu, text="Go to frame 5", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
+
+    button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=25)
+    button_quit.pack()
     
     return frame_menu
 
