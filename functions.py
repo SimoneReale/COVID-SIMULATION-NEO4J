@@ -30,43 +30,53 @@ def createFamily(db, list_relatives):
 
 
 def createPopulation(db, n):
-    f = open('nomi_italiani.txt', 'r')
+    f1 = open('nomi.txt', 'r')
+    f2 = open('cognomi.txt', 'r')
+
+    count_pop = 0
 
     for i in range(n):
         
         family_list = []
+        family_surname = f2.readline().strip('\n')
         pater_familias = {}
-        pater_familias["name"] = f.readline().strip('\n')
+        pater_familias["name"] = f1.readline().strip('\n')
+        pater_familias["surname"] = family_surname
         pater_familias["age"] = randint(0, 100)
         family_list.append(pater_familias)
 
         db.run("CREATE (a:Person) "
                         "SET a.name = $name "
+                        "SET a.surname = $surname "
                         "SET a.age = $age"
-                        , name = pater_familias.get("name"), age = pater_familias.get("age"))
+                        , name = pater_familias.get("name"), surname = family_surname ,age = pater_familias.get("age"))
+
+        count_pop += 1
 
         for j in range(randint(0,10)):
             parente = {}
-            parente["name"] = f.readline().strip('\n')
+            parente["name"] = f1.readline().strip('\n')
             parente["age"] = randint(0, 100)
+            parente["surname"] = f2.readline().strip('\n')
             family_list.append(parente)
             
             db.run("CREATE (a:Person) "
                         "SET a.name = $name "
+                        "SET a.surname = $surname "
                         "SET a.age = $age"
-                        , name = parente.get("name"), age = parente.get("age"))
+                        , name = parente.get("name"), surname = family_surname  ,age = parente.get("age"))
 
+            count_pop += 1
+
+        
 
         createFamily(db, family_list)
+        
+        if (count_pop > n):
+            break
 
-    f.close()
+    f1.close()
     return
-
-
-if __name__ == "__main__":
-    #database connection
-    graph = Graph("bolt://localhost:7687", auth=(conf.username, conf.password))
-    createPopulation(graph, conf.pop_num)
 
 
     
