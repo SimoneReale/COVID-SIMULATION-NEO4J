@@ -37,6 +37,9 @@ def createPopulation(db, n):
 
     for i in range(n):
         
+        if (count_pop > n):
+            break
+        
         family_list = []
         family_surname = f2.readline().strip('\n')
         pater_familias = {}
@@ -64,7 +67,7 @@ def createPopulation(db, n):
                         "SET a.name = $name "
                         "SET a.surname = $surname "
                         "SET a.age = $age"
-                        , name = parente.get("name"), surname = family_surname  ,age = parente.get("age"))
+                        , name = parente.get("name"), surname = family_surname, age = parente.get("age"))
 
             count_pop += 1
 
@@ -72,8 +75,7 @@ def createPopulation(db, n):
 
         createFamily(db, family_list)
         
-        if (count_pop > n):
-            break
+        
 
     f1.close()
     return
