@@ -1,3 +1,5 @@
+from cgitb import text
+from ctypes import alignment
 from tkinter import *
 from tkinter.ttk import Progressbar
 import functions as func
@@ -49,10 +51,10 @@ def createLoginFrame():
         return 
 
     frame_login = Frame(global_var.root_window, bg = "white")
-    label_error = Label(frame_login, text="Login Error", background="white", foreground="red", font="15", )
+    label_error = Label(frame_login, text="Login Error", font='Arial 25', background="white", foreground="red")
 
     img = Image.open('covid.jpg')
-    img = img.resize((250, 250), Image.ANTIALIAS)
+    img = img.resize((200, 200), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(img)
     panel = Label(frame_login, image=img, background='white')
     panel.image = img
@@ -73,10 +75,10 @@ def createLoginFrame():
     insert_pass = Entry(frame_login, font="Arial 20", show="*")
     insert_pass.pack(pady=5)
 
-    button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=25, padx=55)
+    button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=15, padx=55)
     button_login.pack()
 
-    button_quit = Button(frame_login, text="Quit", background= 'yellow', command=quit, pady=25, padx=55)
+    button_quit = Button(frame_login, text="Quit", background= 'yellow', command=quit, pady=15, padx=58)
     button_quit.pack()
 
     return frame_login
@@ -111,17 +113,19 @@ def managePopulationFrame():
         func.deletePopulation(global_var.graph)
 
     frame_manage_pop = Frame(global_var.root_window, bg = "white")
-    label_program = Label(frame_manage_pop, text="Manage population", font="25", background="white", pady=20)
+    label_program = Label(frame_manage_pop, text="Manage population", font="Arial 25", background="white", pady=40)
     label_program.pack()
-    scale_pop = Scale(frame_manage_pop, from_=15, to=1500, orient="horizontal", background="white", length=300)
+    label_2 = Label(frame_manage_pop, text="Choose the number of people to be created:", font="Arial 15", background="white", pady=5)
+    label_2.pack()
+    scale_pop = Scale(frame_manage_pop, from_=15, to=1500, orient="horizontal", background="white", length=300, cursor="plus", font="Arial 15")
     scale_pop.set(500)
-    scale_pop.pack()
+    scale_pop.pack(pady=20)
     button_create_pop = Button(frame_manage_pop, text="Create population",command=create , pady=15, padx=15,)
     button_create_pop.pack()
-    button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , pady=25, padx=25,)
+    button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , background="red", pady=25, padx=29, cursor="pirate")
     button_delete_pop.pack()
-    progress_bar = Progressbar(frame_manage_pop, orient=HORIZONTAL, mode='determinate', length=200)
-    go_to_menu = Button(frame_manage_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=35)
+    progress_bar = Progressbar(frame_manage_pop, orient=HORIZONTAL, mode='determinate', length=300, )
+    go_to_menu = Button(frame_manage_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=32, activebackground="red")
     go_to_menu.pack()
     return frame_manage_pop
 
@@ -155,10 +159,10 @@ def createMenuFrame():
         return
 
     frame_menu = Frame(global_var.root_window, bg="white")
-    label_menu = Label(frame_menu, text="MENU", font="20", background="white", pady=20)
+    label_menu = Label(frame_menu, text="MENU", font="Arial 30", background="white", pady=40)
     label_menu.pack()
 
-    button_frame_create_pop = Button(frame_menu, text="Manage population", command=goToFrameCreatePop, pady=15, padx=25)
+    button_frame_create_pop = Button(frame_menu, text="Manage population", command=goToFrameCreatePop, pady=15, padx=45)
     button_frame_create_pop.pack()
 
 
@@ -177,7 +181,7 @@ def createMenuFrame():
     button_frame5 = Button(frame_menu, text="Go to frame 5", background="pink", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
 
-    button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=25)
+    button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=85)
     button_quit.pack()
     
     return frame_menu

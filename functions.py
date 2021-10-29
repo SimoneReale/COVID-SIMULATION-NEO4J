@@ -1,4 +1,5 @@
 from os import close
+from pickle import TRUE
 from random import randint
 from py2neo import Graph
 import conf
@@ -34,7 +35,7 @@ def createPopulation(db, n, progress_bar):
     f2 = open('cognomi.txt', 'r')
 
     count_pop = 0
-    progress_bar.pack()
+    progress_bar.pack(pady=40)
     progress_bar['value'] = 0
 
     for i in range(n):
