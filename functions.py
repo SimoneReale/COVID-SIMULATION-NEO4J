@@ -29,11 +29,13 @@ def createFamily(db, list_relatives):
 
 
 
-def createPopulation(db, n):
+def createPopulation(db, n, progress_bar):
     f1 = open('nomi.txt', 'r')
     f2 = open('cognomi.txt', 'r')
 
     count_pop = 0
+    progress_bar.pack()
+    progress_bar['value'] = 0
 
     for i in range(n):
         
@@ -55,6 +57,8 @@ def createPopulation(db, n):
                         , name = pater_familias.get("name"), surname = family_surname ,age = pater_familias.get("age"))
 
         count_pop += 1
+        progress_bar['value'] += 100 / n
+        
 
         for j in range(randint(0,10)):
             parente = {}
@@ -70,15 +74,22 @@ def createPopulation(db, n):
                         , name = parente.get("name"), surname = family_surname, age = parente.get("age"))
 
             count_pop += 1
+            progress_bar['value'] += 100 / n
+
+            if (count_pop > n):
+                break
 
         
 
         createFamily(db, family_list)
         
         
+    progress_bar.pack_forget()
 
     f1.close()
     return
 
 
-    
+def deletePopulation(db):
+    db.run("MATCH (n) Detach Delete n")
+    return

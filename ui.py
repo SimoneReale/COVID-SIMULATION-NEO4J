@@ -1,9 +1,12 @@
-from cgitb import text
 from tkinter import *
+from tkinter.ttk import Progressbar
 import functions as func
 from py2neo import Graph
 import conf
 from dataclasses import dataclass
+from threading import Thread
+from PIL import ImageTk, Image
+import os
 
 
 @dataclass
@@ -24,7 +27,7 @@ def connectDbAndReturnGraph(uri, username, password):
     return Graph(uri, auth=(username, password))
 
 
-def createFrameLogin():
+def createLoginFrame():
     
     def inner_prendiCredenziali():
         return (insert_uri.get() ,insert_username.get(), insert_pass.get())
@@ -47,23 +50,34 @@ def createFrameLogin():
 
     frame_login = Frame(global_var.root_window, bg = "white")
     label_error = Label(frame_login, text="Login Error", background="white", foreground="red", font="15", )
-    label_uri = Label(frame_login, text="Insert the uri of the db:", background="white", pady=20)
+
+    img = Image.open('covid.jpg')
+    img = img.resize((250, 250), Image.ANTIALIAS)
+    img = ImageTk.PhotoImage(img)
+    panel = Label(frame_login, image=img, background='white')
+    panel.image = img
+    panel.pack()
+
+    label_uri = Label(frame_login, text="Insert the uri of the db:", font='Arial 15', foreground="green", background="white", pady=20)
     label_uri.pack()
-    insert_uri = Entry(frame_login)
+    insert_uri = Entry(frame_login, font="Arial 20")
     insert_uri.insert(0, conf.uri)
     insert_uri.pack(pady=5)
-    label_insert_username = Label(frame_login, text="Insert your username:", background="white", pady=20)
+    label_insert_username = Label(frame_login, text="Insert your username:", font='Arial 15', foreground="green", background="white", pady=20)
     label_insert_username.pack()
-    insert_username = Entry(frame_login)
+    insert_username = Entry(frame_login, font="Arial 20")
     insert_username.insert(0, conf.username)
     insert_username.pack(pady=5)
-    label_insert_pass = Label(frame_login, text="Insert your password:", background="white", pady=20)
+    label_insert_pass = Label(frame_login, text="Insert your password:", font='Arial 15', foreground="green", background="white", pady=20)
     label_insert_pass.pack()
-    insert_pass = Entry(frame_login, show="*")
+    insert_pass = Entry(frame_login, font="Arial 20", show="*")
     insert_pass.pack(pady=5)
 
-    button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=15, padx=15)
+    button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=25, padx=55)
     button_login.pack()
+
+    button_quit = Button(frame_login, text="Quit", background= 'yellow', command=quit, pady=25, padx=55)
+    button_quit.pack()
 
     return frame_login
 
@@ -71,36 +85,45 @@ def createFrameLogin():
 def createRootWindow():
     root = Tk()
     root.title("COVID DATABASE")
-    root.geometry("700x700")
+    root.geometry("800x800")
     root.configure(background="white")
-    titolo = Label(root, text="SMBUD DELIVERY 1",font="Times 20" ,background="white")
+    titolo = Label(root, text="SMBUD DELIVERY 1: NEO4J",font="Arial 30" ,background="white")
     titolo.pack()
+    sottotitolo = Label(root, text="Giuseppe Urso, Simone Reale, Hazem Shalby, Marco Somaschini, Andrea Vitobello", font="Times 15" ,background="white", foreground="green")
+    sottotitolo.pack()
     return root
 
 
 
-def createPopulationFrame():
+def managePopulationFrame():
 
     def goToMenu():
-        frame_create_pop.pack_forget()
+        frame_manage_pop.pack_forget()
         frame_menu.pack()
         return
 
     def create():
-        func.createPopulation(global_var.graph, scale_pop.get() - 1)
+        t = Thread(target=func.createPopulation, args=(global_var.graph, scale_pop.get() - 1, progress_bar))
+        t.start()
         return
 
-    frame_create_pop = Frame(global_var.root_window, bg = "white")
-    label_program = Label(frame_create_pop, text="Create population frame", font="25", background="white", pady=20)
+    def delete():
+        func.deletePopulation(global_var.graph)
+
+    frame_manage_pop = Frame(global_var.root_window, bg = "white")
+    label_program = Label(frame_manage_pop, text="Manage population", font="25", background="white", pady=20)
     label_program.pack()
-    scale_pop = Scale(frame_create_pop, from_=2, to=1000, orient="horizontal")
-    scale_pop.set(200)
+    scale_pop = Scale(frame_manage_pop, from_=15, to=1500, orient="horizontal", background="white", length=300)
+    scale_pop.set(500)
     scale_pop.pack()
-    button_create_pop = Button(frame_create_pop, text="Create population",command=create , pady=15, padx=15)
+    button_create_pop = Button(frame_manage_pop, text="Create population",command=create , pady=15, padx=15,)
     button_create_pop.pack()
-    go_to_menu = Button(frame_create_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=35)
+    button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , pady=25, padx=25,)
+    button_delete_pop.pack()
+    progress_bar = Progressbar(frame_manage_pop, orient=HORIZONTAL, mode='determinate', length=200)
+    go_to_menu = Button(frame_manage_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=35)
     go_to_menu.pack()
-    return frame_create_pop
+    return frame_manage_pop
 
 
 
@@ -135,23 +158,23 @@ def createMenuFrame():
     label_menu = Label(frame_menu, text="MENU", font="20", background="white", pady=20)
     label_menu.pack()
 
-    button_frame_create_pop = Button(frame_menu, text="Go to create population", command=goToFrameCreatePop, pady=15, padx=25)
+    button_frame_create_pop = Button(frame_menu, text="Manage population", command=goToFrameCreatePop, pady=15, padx=25)
     button_frame_create_pop.pack()
 
 
-    button_frame1 = Button(frame_menu, text="Go to frame 1", command=goToFrame1, pady=15, padx=25)
+    button_frame1 = Button(frame_menu, text="Go to frame 1", background="red", command=goToFrame1, pady=15, padx=25)
     button_frame1.pack()
 
-    button_frame2 = Button(frame_menu, text="Go to frame 2", command=goToFrame2, pady=15, padx=25)
+    button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
 
-    button_frame3 = Button(frame_menu, text="Go to frame 3", command=goToFrame3, pady=15, padx=25)
+    button_frame3 = Button(frame_menu, text="Go to frame 3", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
 
-    button_frame4 = Button(frame_menu, text="Go to frame 4", command=goToFrame4, pady=15, padx=25)
+    button_frame4 = Button(frame_menu, text="Go to frame 4", background="green", command=goToFrame4, pady=15, padx=25)
     button_frame4.pack()
 
-    button_frame5 = Button(frame_menu, text="Go to frame 5", command=goToFrame5, pady=15, padx=25)
+    button_frame5 = Button(frame_menu, text="Go to frame 5", background="pink", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
 
     button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=25)
@@ -285,11 +308,11 @@ def createFrame5():
 if __name__ == "__main__":
     
     global_var = GlobalVariables("","","", any, createRootWindow())
-    frame_login = createFrameLogin()
+    frame_login = createLoginFrame()
     frame_login.pack()
     
     frame_menu = createMenuFrame()
-    frame_create_pop = createPopulationFrame()
+    frame_create_pop = managePopulationFrame()
     
     frame1 = createFrame1()
     frame2 = createFrame2()
