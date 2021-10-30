@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import os
+import matplotlib
 
 
 @dataclass

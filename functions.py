@@ -18,10 +18,10 @@ def createFamily(db, list_relatives):
                         , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))
                 
                 #relazione inversa
-                db.run("MATCH (a:Person), (b:Person) "
+                """db.run("MATCH (a:Person), (b:Person) "
                         "WHERE a.name = $name1 AND b.name = $name2 "
                         "CREATE (a)<-[r:FAMILY_CONTACT]-(b)"
-                        , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))
+                        , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))"""
 
     return             
 
