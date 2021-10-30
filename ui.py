@@ -195,7 +195,7 @@ def createMenuFrame():
 
 
 
-
+#frame reale
 def createFrame1():
     def goToMenu():
         frame1.pack_forget()
@@ -220,7 +220,7 @@ def createFrame1():
 
 
 
-
+#frame shalby
 def createFrame2():
     def goToMenu():
         frame2.pack_forget()
@@ -245,7 +245,7 @@ def createFrame2():
 
 
 
-
+#frame somaschini
 def createFrame3():
     def goToMenu():
         frame3.pack_forget()
@@ -268,7 +268,7 @@ def createFrame3():
 
 
 
-
+#frame urso
 def createFrame4():
     def goToMenu():
         frame4.pack_forget()
@@ -293,7 +293,7 @@ def createFrame4():
 
 
 
-
+#frame vitobello
 def createFrame5():
     def goToMenu():
         frame5.pack_forget()
