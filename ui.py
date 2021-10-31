@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import os
-import matplotlib
 
 
 @dataclass
@@ -54,7 +53,7 @@ def createLoginFrame():
     frame_login = Frame(global_var.root_window, bg = "white")
     label_error = Label(frame_login, text="Login Error", font='Arial 25', background="white", foreground="red")
 
-    img = Image.open('covid.jpg')
+    img = Image.open('images\\covid.jpg')
     img = img.resize((200, 200), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(img)
     panel = Label(frame_login, image=img, background='white')
@@ -106,7 +105,7 @@ def managePopulationFrame():
         return
 
     def create():
-        t = Thread(target=func.createPopulation, args=(global_var.graph, scale_pop.get() - 1, progress_bar))
+        t = Thread(target=func.createDataset, args=(global_var.graph, scale_pop.get() - 1, progress_bar, progress_bar_label))
         t.start()
         return
 
@@ -125,6 +124,7 @@ def managePopulationFrame():
     button_create_pop.pack()
     button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , background="red", pady=25, padx=29, cursor="pirate")
     button_delete_pop.pack()
+    progress_bar_label = Label(frame_manage_pop, text="Creating people and family relationships...", font="Arial 12", background="white", pady=40)
     progress_bar = Progressbar(frame_manage_pop, orient=HORIZONTAL, mode='determinate', length=300, )
     go_to_menu = Button(frame_manage_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=32, activebackground="red")
     go_to_menu.pack()
