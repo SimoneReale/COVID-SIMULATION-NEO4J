@@ -1,5 +1,3 @@
-from cgitb import text
-from ctypes import alignment
 from tkinter import *
 from tkinter.ttk import Progressbar
 import functions as func
@@ -110,7 +108,7 @@ def managePopulationFrame():
         return
 
     def delete():
-        func.deletePopulation(global_var.graph)
+        func.deleteDataset(global_var.graph)
 
     frame_manage_pop = Frame(global_var.root_window, bg = "white")
     label_program = Label(frame_manage_pop, text="Manage population", font="Arial 25", background="white", pady=40)

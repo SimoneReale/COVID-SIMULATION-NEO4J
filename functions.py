@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from pickle import NONE
 from random import randint, random
-from py2neo import Graph
+from py2neo import Graph, NodeMatcher
 import conf
 import numpy as np
 import datetime
@@ -79,7 +78,7 @@ def createDataset(db, n, progress_bar, progress_bar_label):
     def createPlaces():
 
         #n is the number of people, the number of places
-        p = int(n / conf.proportion_n_of_people_n_of_place)
+        p = int(n / int(conf.proportion_n_of_people_n_of_place))
 
         f_names = open('txts\\namesRight.txt', 'r')
         list_names = f_names.readlines()
@@ -140,21 +139,54 @@ def createDataset(db, n, progress_bar, progress_bar_label):
         f_names = open('txts\\namesRight.txt', 'r')
         list_names = f_names.readlines()
 
-        for i in range(0, int(n / conf.proportion_n_of_relationship_n_of_people)):
+        for i in range(0, int(n / int(conf.proportion_n_of_relationship_n_of_people))):
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
                             "CREATE (a)-[r:MEETS {date: $random}]->(b)"
                             , randomname1 = list_names[randint(0, n)].strip('\n'), randomname2 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
             
-            progress_bar['value'] += 100 / (n / conf.proportion_n_of_relationship_n_of_people)
+            progress_bar['value'] += 100 / (n / int(conf.proportion_n_of_relationship_n_of_people))
 
 
         return
 
 
+    def infectPeople():
 
+        f_names = open('txts\\namesRight.txt', 'r')
+        list_names = f_names.readlines()
+
+        progress_bar['value'] = 0
+        progress_bar_label.configure(text="Infecting people...")
+
+        for i in range(0, int(n / conf.proportion_n_of_people_n_of_infected)):
+           
+           progress_bar['value'] += 100 / int(n / conf.proportion_n_of_people_n_of_infected)
+           
+           name_infected = list_names[randint(0, n - 1)].strip('\n')
+           print("\n" +str(i) +name_infected)
+           matcher = NodeMatcher(db)
+           person_infected = matcher.match("Person", p01_name = name_infected).first()
+           print("\n" +str(i) +person_infected["p01_name"])
+           
+           #probability with 0 vaccines = 0,7 with one 0,5 
+           probability_of_contagion = 0.7 if person_infected["p05_number_of_doses"] == 0 else conf.probability_of_infection_with_vaccine ** person_infected["p05_number_of_doses"]
+
+           if (random() < probability_of_contagion):
+                db.run("MATCH (n : Person) "
+                        "WHERE n.p01_name = $name "
+                        "SET n:Infected "
+                        "SET n.p06_infectionDate = $date"
+                        , name = name_infected, date = returnRandomDate())
+                
+        
+            
+        return
 
     
+
+
+
     f_names = open('txts\\namesRight.txt', 'r')
     f_surnames = open('txts\\surnamesRight.txt', 'r')
 
@@ -218,6 +250,8 @@ def createDataset(db, n, progress_bar, progress_bar_label):
 
     createPlaces()
     createMeetRelations()
+    infectPeople()
+
         
         
     progress_bar.pack_forget()
@@ -228,6 +262,6 @@ def createDataset(db, n, progress_bar, progress_bar_label):
     return
 
 
-def deletePopulation(db):
+def deleteDataset(db):
     db.run("MATCH (n) Detach Delete n")
     return
