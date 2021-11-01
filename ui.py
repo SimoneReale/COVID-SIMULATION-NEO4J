@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import os
+import matplotlib.pyplot as plt
 
 
 @dataclass
@@ -131,6 +132,7 @@ def managePopulationFrame():
     progress_bar = Progressbar(frame_manage_pop, orient=HORIZONTAL, mode='determinate', length=300, )
     go_to_menu = Button(frame_manage_pop, text="Go to Menu", command=goToMenu,  pady=25, padx=32, activebackground="red")
     go_to_menu.pack()
+
     return frame_manage_pop
 
 
@@ -204,9 +206,22 @@ def createFrame1():
         frame1.pack_forget()
         frame_menu.pack()
         return
+
+    def graphNumbersOfInfectedPerDay():
+        dictionary = func.createDictionaryNumberOfInfectedPerDay(global_var.db_graph, func.returnListOfDates())
+        plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
+        plt.xticks(rotation=90)
+        plt.show()
+  
+
+
+
+
     frame1 = Frame(global_var.root_window, bg="white")
-    label_frame1 = Label(frame1, text="FRAME 1", font="20", background="white", pady=20)
+    label_frame1 = Label(frame1, text="GRAPH THE UMBER OF INFECTED PER DAY", font="20", background="white", pady=20)
     label_frame1.pack()
+    graph_it = Button(frame1, text="Graph number of incted per day!", command=graphNumbersOfInfectedPerDay)
+    graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame1, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
     return frame1

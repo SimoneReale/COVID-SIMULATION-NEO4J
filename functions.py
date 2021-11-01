@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pickle import TRUE
 from random import randint, random
 from py2neo import Graph, NodeMatcher
 import conf
@@ -53,14 +52,29 @@ def returnRandomDate():
 
     return random_date
 
+def returnListOfDates():
+    start_date = conf.start_date
+    end_date = conf.end_date
 
+    time_between_dates = end_date - start_date
+    days_between_dates = time_between_dates.days
+
+
+    dates = []
+
+    for i in range(0, days_between_dates + 1):
+        dates.append(start_date + datetime.timedelta(days=i))
+
+    return dates
+
+#date trattata come stringa nel database
 def infectSinglePerson(db, name_infected, surname_infected, date_of_infection):
     
     db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name AND n.p02_surname = $surname "
                         "SET n:Infected "
                         "SET n.p06_infectionDate = $date"
-                        , name = name_infected, surname = surname_infected,  date = date_of_infection)
+                        , name = name_infected, surname = surname_infected,  date = str(date_of_infection))
     return
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
@@ -183,7 +197,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                         "WHERE n.p01_name = $name "
                         "SET n:Infected "
                         "SET n.p06_infectionDate = $date"
-                        , name = name_infected, date = returnRandomDate())
+                        , name = name_infected, date = str(returnRandomDate()))
                 
         
             
@@ -273,3 +287,16 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 def deleteDataset(db):
     db.run("MATCH (n) Detach Delete n")
     return
+
+
+
+def createDictionaryNumberOfInfectedPerDay(db, dates):
+
+    dict = {}
+
+    for i in range(0, len(dates)):
+        
+        dict[str(dates[i])] = db.run('match (n : Infected {p06_infectionDate : $date}) return count(*)', date = str(dates[i])).evaluate()
+      
+    return dict
+
