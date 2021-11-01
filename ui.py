@@ -172,7 +172,7 @@ def createMenuFrame():
     button_frame_create_pop.pack()
 
 
-    button_frame1 = Button(frame_menu, text="Go to frame 1", background="red", command=goToFrame1, pady=15, padx=25)
+    button_frame1 = Button(frame_menu, text="Go to graph number of infected per day", background="red", command=goToFrame1, pady=15, padx=25)
     button_frame1.pack()
 
     button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
@@ -211,6 +211,7 @@ def createFrame1():
         dictionary = func.createDictionaryNumberOfInfectedPerDay(global_var.db_graph, func.returnListOfDates())
         plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
         plt.xticks(rotation=90)
+        plt.ylabel('number of infected')
         plt.show()
   
 
@@ -218,9 +219,9 @@ def createFrame1():
 
 
     frame1 = Frame(global_var.root_window, bg="white")
-    label_frame1 = Label(frame1, text="GRAPH THE UMBER OF INFECTED PER DAY", font="20", background="white", pady=20)
+    label_frame1 = Label(frame1, text="GRAPH THE NUMBER OF INFECTED PER DAY", font="20", background="white", pady=20)
     label_frame1.pack()
-    graph_it = Button(frame1, text="Graph number of incted per day!", command=graphNumbersOfInfectedPerDay)
+    graph_it = Button(frame1, text="Graph number of infected per day!", command=graphNumbersOfInfectedPerDay)
     graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame1, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
