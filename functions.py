@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pickle import TRUE
 from random import randint, random
 from py2neo import Graph, NodeMatcher
 import conf
@@ -53,9 +54,16 @@ def returnRandomDate():
     return random_date
 
 
+def infectSinglePerson(db, name_infected, surname_infected, date_of_infection):
+    
+    db.run("MATCH (n : Person) "
+                        "WHERE n.p01_name = $name AND n.p02_surname = $surname "
+                        "SET n:Infected "
+                        "SET n.p06_infectionDate = $date"
+                        , name = name_infected, surname = surname_infected,  date = date_of_infection)
+    return
 
-
-def createDataset(db, n, progress_bar, progress_bar_label):
+def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
     def createFamily(list_relatives):
         for i in range(0, len(list_relatives)):
@@ -164,10 +172,8 @@ def createDataset(db, n, progress_bar, progress_bar_label):
            progress_bar['value'] += 100 / int(n / conf.proportion_n_of_people_n_of_infected)
            
            name_infected = list_names[randint(0, n - 1)].strip('\n')
-           print("\n" +str(i) +name_infected)
            matcher = NodeMatcher(db)
            person_infected = matcher.match("Person", p01_name = name_infected).first()
-           print("\n" +str(i) +person_infected["p01_name"])
            
            #probability with 0 vaccines = 0,7 with one 0,5 
            probability_of_contagion = 0.7 if person_infected["p05_number_of_doses"] == 0 else conf.probability_of_infection_with_vaccine ** person_infected["p05_number_of_doses"]
@@ -250,7 +256,9 @@ def createDataset(db, n, progress_bar, progress_bar_label):
 
     createPlaces()
     createMeetRelations()
-    infectPeople()
+
+    if(infect_or_not == 1):
+        infectPeople()
 
         
         

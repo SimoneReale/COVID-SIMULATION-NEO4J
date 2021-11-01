@@ -13,9 +13,9 @@ import os
 class GlobalVariables:
     #database
     database_uri : str
-    username : str
-    password : str
-    graph : Graph
+    db_username : str
+    db_password : str
+    db_graph : Graph
     
     #ui
     root_window : Tk
@@ -37,9 +37,9 @@ def createLoginFrame():
             credenziali = inner_prendiCredenziali()
             graph = connectDbAndReturnGraph(credenziali[0], credenziali[1], credenziali[2])
             global_var.database_uri = credenziali[0]
-            global_var.username = credenziali[1]
-            global_var.password = credenziali[2]
-            global_var.graph = graph
+            global_var.db_username = credenziali[1]
+            global_var.db_password = credenziali[2]
+            global_var.db_graph = graph
             label_error.pack_forget()
             frame_login.pack_forget()
             frame_menu.pack()
@@ -103,21 +103,26 @@ def managePopulationFrame():
         return
 
     def create():
-        t = Thread(target=func.createDataset, args=(global_var.graph, scale_pop.get() - 1, progress_bar, progress_bar_label))
+        t = Thread(target=func.createDataset, args=(global_var.db_graph, scale_pop.get() - 1, progress_bar, progress_bar_label, choice_infected.get()))
         t.start()
         return
 
     def delete():
-        func.deleteDataset(global_var.graph)
+        func.deleteDataset(global_var.db_graph)
+
+
+    choice_infected = IntVar()
 
     frame_manage_pop = Frame(global_var.root_window, bg = "white")
     label_program = Label(frame_manage_pop, text="Manage population", font="Arial 25", background="white", pady=40)
     label_program.pack()
     label_2 = Label(frame_manage_pop, text="Choose the number of people to be created:", font="Arial 15", background="white", pady=5)
     label_2.pack()
-    scale_pop = Scale(frame_manage_pop, from_=15, to=1500, orient="horizontal", background="white", length=300, cursor="plus", font="Arial 15")
+    scale_pop = Scale(frame_manage_pop, from_=15, to=1500, orient="horizontal", background="white", length=400, cursor="plus", font="Arial 15")
     scale_pop.set(500)
-    scale_pop.pack(pady=20)
+    scale_pop.pack(pady=15)
+    ChkBttn = Checkbutton(frame_manage_pop, variable=choice_infected, text="Start with some infected people", background="white")
+    ChkBttn.pack(padx = 5, pady = 15)
     button_create_pop = Button(frame_manage_pop, text="Create population",command=create , pady=15, padx=15,)
     button_create_pop.pack()
     button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , background="red", pady=25, padx=29, cursor="pirate")
