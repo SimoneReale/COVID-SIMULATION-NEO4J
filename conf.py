@@ -14,7 +14,8 @@ end_date = datetime.date(2020, 3, 31)
 time_between_dates = end_date - start_date
 days_between_dates = time_between_dates.days
 
-
+#Exposure interval i.e. how many days before a positive test we check for trasmission of covid
+exposure_interval = 10
 
 vaccines = ('Pfizer', 'Astrazeneca', 'Moderna', 'Sputnik')
 vaccine_probability = 0.7
@@ -38,4 +39,3 @@ type_of_places = ('Restaurant', 'Hospital', 'Theatre')
 proportion_n_of_people_n_of_place = 10 / 1
 proportion_n_of_relationship_n_of_people = 1 / 1
 proportion_n_of_people_n_of_infected = 8 / 1
-

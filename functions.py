@@ -50,7 +50,7 @@ def returnRandomDate():
     return str(random_date)
 
 def returnListOfDates():
-    
+
     dates = []
 
     for i in range(0, conf.days_between_dates + 1):
@@ -343,10 +343,10 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
     deleteDataset(db)
     #no person infected at beginning
     createDataset(db, n, progress_bar, progress_bar_label, 0)
-    
+
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 0 "
-            "WITH n , rand() as r " 
+            "WITH n , rand() as r "
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
@@ -355,7 +355,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 1 "
-            "WITH n , rand() as r " 
+            "WITH n , rand() as r "
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
@@ -364,7 +364,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 2 "
-            "WITH n , rand() as r " 
+            "WITH n , rand() as r "
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
@@ -373,37 +373,37 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 3 "
-            "WITH n , rand() as r " 
+            "WITH n , rand() as r "
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
             "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_3_vax)
             , date = str(conf.start_date))
-    
+
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 4 "
-            "WITH n , rand() as r " 
+            "WITH n , rand() as r "
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
             "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_4_vax)
             , date = str(conf.start_date))
 
-    
-    
+
+
     current_list_of_dates = []
     progress_bar_label.configure(text="Simulating...", pady = 20)
     progress_bar_label.pack()
     progress_bar.pack()
     progress_bar['value'] = 0
-        
-    
+
+
     for i in range(0, conf.days_between_dates):
 
         progress_bar['value'] += 100 / conf.days_between_dates
 
         date = conf.start_date + datetime.timedelta(days=i)
-        
+
         current_list_of_dates.append(str(date))
 
         df = db.run('match (n : Infected) return n.p01_name, n.p06_infectionDate').data()
@@ -414,7 +414,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             df_family = db.run('MATCH (n:Infected {p01_name : $name})-[f : FAMILY_CONTACT]-(b:Person) WHERE not b : Infected RETURN b.p01_name, b.p05_number_of_doses', name = person_name).data()
             for curr_date in current_list_of_dates:
                 df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = $date RETURN b.p01_name, b.p05_number_of_doses', name = person_name, date = curr_date).data()
-            
+
 
             for p in df_family:
                 probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
@@ -425,13 +425,37 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, z["b.p01_name"], str(date))
-                
 
-    
-    
-       
+
+
+
+
 
 
 
     progress_bar.pack_forget()
     progress_bar_label.pack_forget()
+
+
+
+
+def findPeopleAtRisk(db):
+    return db.run(
+        """
+        CALL{
+          MATCH (a:Infected)-[v1:VISITS]-(p:Place)-[v2:VISITS]-(b:Person)
+          WHERE
+            duration.inDays(v1.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days AND
+            v1.date = v2.date
+          RETURN b.p01_name AS Name, b.p02_surname AS Surname, v2.date AS Date, p.p01_name AS Place
+
+          UNION
+
+          MATCH (a:Infected)-[r:MEETS]-(b:Person)
+          WHERE duration.inDays(r.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days
+          RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS Date, "unknown" AS Place
+        }
+        RETURN Name, Surname, Date, Place
+        ORDER BY Date DESC
+        """, exposure_interval = conf.exposure_interval
+    ).data()

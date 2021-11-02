@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.ttk import Progressbar
+from tkinter.ttk import Treeview
 
 import functions
 import functions as func
@@ -18,7 +19,7 @@ class GlobalVariables:
     db_username : str
     db_password : str
     db_graph : Graph
-    
+
     #ui
     root_window : Tk
 
@@ -30,7 +31,7 @@ def connectDbAndReturnGraph(uri, username, password):
 
 
 def createLoginFrame():
-    
+
     def inner_prendiCredenziali():
         return (insert_uri.get() ,insert_username.get(), insert_pass.get())
 
@@ -48,7 +49,7 @@ def createLoginFrame():
 
         except:
             label_error.pack()
-        return 
+        return
 
     frame_login = Frame(global_var.root_window, bg = "white")
     label_error = Label(frame_login, text="Login Error", font='Arial 25', background="white", foreground="red")
@@ -186,7 +187,7 @@ def createMenuFrame():
     button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
 
-    button_frame3 = Button(frame_menu, text="Go to frame 3", background="orange", command=goToFrame3, pady=15, padx=25)
+    button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
 
     button_frame4 = Button(frame_menu, text="Go to frame 4", background="green", command=goToFrame4, pady=15, padx=25)
@@ -197,7 +198,7 @@ def createMenuFrame():
 
     button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=85)
     button_quit.pack()
-    
+
     return frame_menu
 
 
@@ -221,7 +222,7 @@ def createFrame1():
         plt.xticks(rotation=90)
         plt.ylabel('number of infected')
         plt.show()
-  
+
 
 
 
@@ -248,7 +249,7 @@ def createFrameSimulation():
         t = Thread(target=func.simulatePandemic, args=(global_var.db_graph, scale_pop.get(), progress_bar, progress_bar_label, scale_inf.get()))
         t.start()
         return
-  
+
 
 
 
@@ -307,13 +308,36 @@ def createFrame2():
 
 #frame somaschini
 def createFrame3():
+
     def goToMenu():
         frame3.pack_forget()
         frame_menu.pack()
         return
+    def findPeopleAtRisk():
+        data  = func.findPeopleAtRisk(global_var.db_graph)
+
+        tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
+        tree.pack()
+        tree.heading(1, text="Name")
+        tree.heading(2, text="Surname")
+        tree.heading(3, text="Date of Contact")
+        tree.heading(4, text="Place of Contact")
+
+        tree.column(1, width = 100)
+        tree.column(2, width = 100)
+        tree.column(3, width = 100)
+        tree.column(4, width = 100)
+
+        for record in data:
+            keys = list(record)
+            tree.insert('', 'end', values = (record[keys[0]], record[keys[1]], record[keys[2]], record[keys[3]]))
+        return
+
     frame3 = Frame(global_var.root_window, bg="white")
-    label_frame3 = Label(frame3, text="FRAME 3", font="20", background="white", pady=20)
+    label_frame3 = Label(frame3, text="Analysis of infection spread", font="20", background="white", pady=20)
     label_frame3.pack()
+    findPeopleAtRisk = Button(frame3, text="Find possible infected", command=findPeopleAtRisk)
+    findPeopleAtRisk.pack()
     go_to_menu = Button(frame3, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
     return frame3
@@ -347,7 +371,7 @@ def createFrame4():
         string = "The most effective vaccine is: " + mostEffectiveVaccine + " with a infected/total vaccinated ratio = " + str(lowestRatio)
         label2_frame4.configure(text=string)
 
-    
+
     frame4 = Frame(global_var.root_window, bg="white")
     label_frame4 = Label(frame4, text="FRAME 4", font="20", background="white", pady=20)
     label_frame4.pack()
@@ -391,14 +415,14 @@ def createFrame5():
 
 
 if __name__ == "__main__":
-    
+
     global_var = GlobalVariables("","","", any, createRootWindow())
     frame_login = createLoginFrame()
     frame_login.pack()
-    
+
     frame_menu = createMenuFrame()
     frame_create_pop = managePopulationFrame()
-    
+
     frame1 = createFrame1()
     frameSimulation = createFrameSimulation()
     frame2 = createFrame2()
@@ -407,4 +431,3 @@ if __name__ == "__main__":
     frame5 = createFrame5()
 
     global_var.root_window.mainloop()
-
