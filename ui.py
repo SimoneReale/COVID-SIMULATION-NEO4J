@@ -148,6 +148,10 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame1.pack()
         return
+    def goToFrameSimulation():
+        frame_menu.pack_forget()
+        frameSimulation.pack()
+        return
     def goToFrame2():
         frame_menu.pack_forget()
         frame2.pack()
@@ -175,6 +179,9 @@ def createMenuFrame():
 
     button_frame1 = Button(frame_menu, text="Go to graph number of infected per day", background="red", command=goToFrame1, pady=15, padx=25)
     button_frame1.pack()
+
+    button_frameSimulation = Button(frame_menu, text="Simulate!", background="red", command=goToFrameSimulation, pady=15, padx=25)
+    button_frameSimulation.pack()
 
     button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
@@ -230,7 +237,40 @@ def createFrame1():
 
 
 
+#frame reale 2
+def createFrameSimulation():
+    def goToMenu():
+        frameSimulation.pack_forget()
+        frame_menu.pack()
+        return
 
+    def simulate():
+        t = Thread(target=func.simulatePandemic, args=(global_var.db_graph, scale_pop.get(), progress_bar, progress_bar_label, scale_inf.get()))
+        t.start()
+        return
+  
+
+
+
+
+    frameSimulation = Frame(global_var.root_window, bg="white")
+    label_pop = Label(frameSimulation, text="INITIAL NUMBER OF PEOPLE", font="Arial 12", background="white", pady=5)
+    label_pop.pack()
+    scale_pop = Scale(frameSimulation, from_=15, to=500, orient="horizontal", background="white", length=400, cursor="plus", font="Arial 15")
+    scale_pop.set(250)
+    scale_pop.pack(pady=15)
+    label_inf = Label(frameSimulation, text="INITIAL NUMBER OF INFECTED PEOPLE", font="Arial 12", background="white", pady=5)
+    label_inf.pack()
+    scale_inf = Scale(frameSimulation, from_=1, to=500, orient="horizontal", background="white", length=400, cursor="plus", font="Arial 15")
+    scale_inf.set(30)
+    scale_inf.pack(pady=15)
+    simulate = Button(frameSimulation, text="Simulate!", command=simulate)
+    simulate.pack(pady=40, padx=40)
+    progress_bar_label = Label(frameSimulation, text="Creating people and family relationships...", font="Arial 12", background="white", pady=40)
+    progress_bar = Progressbar(frameSimulation, orient=HORIZONTAL, mode='determinate', length=300, )
+    go_to_menu = Button(frameSimulation, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+    return frameSimulation
 
 
 
@@ -360,6 +400,7 @@ if __name__ == "__main__":
     frame_create_pop = managePopulationFrame()
     
     frame1 = createFrame1()
+    frameSimulation = createFrameSimulation()
     frame2 = createFrame2()
     frame3 = createFrame3()
     frame4 = createFrame4()

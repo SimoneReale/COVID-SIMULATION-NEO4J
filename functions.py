@@ -42,28 +42,18 @@ class Place :
 
 
 def returnRandomDate():
-    start_date = conf.start_date
-    end_date = conf.end_date
 
-    time_between_dates = end_date - start_date
-    days_between_dates = time_between_dates.days
-    random_number_of_days = rm.randrange(days_between_dates)
-    random_date = start_date + datetime.timedelta(days=random_number_of_days)
+    random_number_of_days = rm.randrange(conf.days_between_dates)
+    random_date = conf.start_date + datetime.timedelta(days=random_number_of_days)
 
     return str(random_date)
 
 def returnListOfDates():
-    start_date = conf.start_date
-    end_date = conf.end_date
-
-    time_between_dates = end_date - start_date
-    days_between_dates = time_between_dates.days
-
-
+    
     dates = []
 
-    for i in range(0, days_between_dates + 1):
-        dates.append(start_date + datetime.timedelta(days=i))
+    for i in range(0, conf.days_between_dates + 1):
+        dates.append(conf.start_date + datetime.timedelta(days=i))
 
     return dates
 
@@ -343,3 +333,54 @@ def getMostEffectiveVaccine(infectedPerVaccine, vaccinatedPerVaccine):
                 bestVaccine = key
 
     return bestVaccine, lowestRatio
+
+
+def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_infected):
+    deleteDataset(db)
+    #no person infected at beginning
+    createDataset(db, n, progress_bar, progress_bar_label, 0)
+    
+    db.run( "MATCH (n : Person) "
+            "WHERE n.p05_number_of_doses = 0 "
+            "WITH n , rand() as r " 
+            "ORDER BY r "
+            "LIMIT $initial_number "
+            "SET n : Infected "
+            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_no_vax)
+            , date = str(conf.start_date))
+
+    db.run( "MATCH (n : Person) "
+            "WHERE n.p05_number_of_doses = 1 "
+            "WITH n , rand() as r " 
+            "ORDER BY r "
+            "LIMIT $initial_number "
+            "SET n : Infected "
+            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_1_vax)
+            , date = str(conf.start_date))
+
+    db.run( "MATCH (n : Person) "
+            "WHERE n.p05_number_of_doses = 2 "
+            "WITH n , rand() as r " 
+            "ORDER BY r "
+            "LIMIT $initial_number "
+            "SET n : Infected "
+            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_2_vax)
+            , date = str(conf.start_date))
+
+    db.run( "MATCH (n : Person) "
+            "WHERE n.p05_number_of_doses = 3 "
+            "WITH n , rand() as r " 
+            "ORDER BY r "
+            "LIMIT $initial_number "
+            "SET n : Infected "
+            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_3_vax)
+            , date = str(conf.start_date))
+    
+    db.run( "MATCH (n : Person) "
+            "WHERE n.p05_number_of_doses = 4 "
+            "WITH n , rand() as r " 
+            "ORDER BY r "
+            "LIMIT $initial_number "
+            "SET n : Infected "
+            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_4_vax)
+            , date = str(conf.start_date))
