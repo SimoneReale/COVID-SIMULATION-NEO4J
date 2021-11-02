@@ -305,9 +305,9 @@ def createFrame4():
         vaccinatedPerVaccine = functions.getNumberOfVaccinatedPerVaccine(global_var.db_graph)
         mostEffectiveVaccine, lowestRatio = functions.getMostEffectiveVaccine(infectedPerVaccine, vaccinatedPerVaccine)
         string = "The most effective vaccine is: " + mostEffectiveVaccine + " with a infected/total vaccinated ratio = " + str(lowestRatio)
-        label2_frame4 = Label(frame4, text=string, font="20", background="white", pady=100)
-        label2_frame4.pack()
+        label2_frame4.configure(text=string)
 
+    
     frame4 = Frame(global_var.root_window, bg="white")
     label_frame4 = Label(frame4, text="FRAME 4", font="20", background="white", pady=20)
     label_frame4.pack()
@@ -315,6 +315,10 @@ def createFrame4():
     graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame4, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
+    string = ""
+    label2_frame4 = Label(frame4, text=string, font="20", background="white", pady=100)
+    label2_frame4.pack()
+
     return frame4
 
 
