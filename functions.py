@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from random import randint, random
+from tkinter.ttk import Progressbar
 from py2neo import Graph, NodeMatcher
 import conf
 import numpy as np
@@ -59,13 +60,13 @@ def returnListOfDates():
 
 
 #date trattata come stringa nel database
-def infectSinglePerson(db, name_infected, surname_infected, date_of_infection):
+def infectSinglePerson(db, name_infected, date_of_infection):
 
     db.run("MATCH (n : Person) "
-                        "WHERE n.p01_name = $name AND n.p02_surname = $surname "
+                        "WHERE n.p01_name = $name "
                         "SET n:Infected "
                         "SET n.p06_infectionDate = $date"
-                        , name = name_infected, surname = surname_infected,  date = str(date_of_infection))
+                        , name = name_infected,  date = str(date_of_infection))
     return
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
@@ -384,3 +385,50 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "SET n : Infected "
             "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_4_vax)
             , date = str(conf.start_date))
+
+    
+    
+    current_list_of_dates = []
+    progress_bar_label.configure(text="Simulating...", pady = 20)
+    progress_bar_label.pack()
+    progress_bar.pack()
+    progress_bar['value'] = 0
+        
+    
+    for i in range(0, conf.days_between_dates):
+
+        progress_bar['value'] += 100 / conf.days_between_dates
+
+        date = conf.start_date + datetime.timedelta(days=i)
+        
+        current_list_of_dates.append(str(date))
+
+        df = db.run('match (n : Infected) return n.p01_name, n.p06_infectionDate').data()
+
+        list = [d['n.p01_name'] for d in df]
+
+        for person_name in list:
+            df_family = db.run('MATCH (n:Infected {p01_name : $name})-[f : FAMILY_CONTACT]-(b:Person) WHERE not b : Infected RETURN b.p01_name, b.p05_number_of_doses', name = person_name).data()
+            for curr_date in current_list_of_dates:
+                df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = $date RETURN b.p01_name, b.p05_number_of_doses', name = person_name, date = curr_date).data()
+            
+
+            for p in df_family:
+                probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
+                if(probability_of_contagion > random()):
+                    infectSinglePerson(db, p["b.p01_name"], str(date))
+
+            for z in df_meets:
+                probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
+                if(probability_of_contagion > random()):
+                    infectSinglePerson(db, z["b.p01_name"], str(date))
+                
+
+    
+    
+       
+
+
+
+    progress_bar.pack_forget()
+    progress_bar_label.pack_forget()

@@ -241,7 +241,7 @@ def createFrame1():
 def createFrameSimulation():
     def goToMenu():
         frameSimulation.pack_forget()
-        frame_menu.pack()
+        frame_menu.pack(pady=30)
         return
 
     def simulate():
@@ -264,7 +264,7 @@ def createFrameSimulation():
     scale_inf = Scale(frameSimulation, from_=1, to=500, orient="horizontal", background="white", length=400, cursor="plus", font="Arial 15")
     scale_inf.set(30)
     scale_inf.pack(pady=15)
-    simulate = Button(frameSimulation, text="Simulate!", command=simulate)
+    simulate = Button(frameSimulation, text="Simulate!", command=simulate, pady=50, padx=50)
     simulate.pack(pady=40, padx=40)
     progress_bar_label = Label(frameSimulation, text="Creating people and family relationships...", font="Arial 12", background="white", pady=40)
     progress_bar = Progressbar(frameSimulation, orient=HORIZONTAL, mode='determinate', length=300, )
