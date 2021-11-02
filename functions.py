@@ -284,14 +284,16 @@ def deleteDataset(db):
 
 def createDictionaryNumberOfInfectedPerDay(db):
 
-    dict = {}
+    dictionary = {}
 
     var2 = db.run('match (x:Infected) return x.p06_infectionDate, count(*)').to_table()
 
     for index, tupla in enumerate(var2):
-        dict[tupla[0]] = tupla[1]
+        dictionary[tupla[0]] = tupla[1]
 
-    return dict
+    dictionary = dict(sorted(dictionary.items()))
+
+    return dictionary
 
 def getInfectedPerVaccineType(db):
 
