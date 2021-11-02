@@ -216,7 +216,7 @@ def createFrame1():
         return
 
     def graphNumbersOfInfectedPerDay():
-        dictionary = func.createDictionaryNumberOfInfectedPerDay(global_var.db_graph, func.returnListOfDates())
+        dictionary = func.createDictionaryNumberOfInfectedPerDay(global_var.db_graph)
         plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
         plt.xticks(rotation=90)
         plt.ylabel('number of infected')

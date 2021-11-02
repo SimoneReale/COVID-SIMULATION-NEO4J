@@ -282,13 +282,14 @@ def deleteDataset(db):
 
 
 
-def createDictionaryNumberOfInfectedPerDay(db, dates):
+def createDictionaryNumberOfInfectedPerDay(db):
 
     dict = {}
 
-    for i in range(0, len(dates)):
+    var2 = db.run('match (x:Infected) return x.p06_infectionDate, count(*)').to_table()
 
-        dict[str(dates[i])] = db.run('match (n : Infected {p06_infectionDate : $date}) return count(*)', date = str(dates[i])).evaluate()
+    for index, tupla in enumerate(var2):
+        dict[tupla[0]] = tupla[1]
 
     return dict
 
