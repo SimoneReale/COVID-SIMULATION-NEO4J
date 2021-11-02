@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter.ttk import Progressbar
+
+import functions
 import functions as func
 from py2neo import Graph
 import conf
@@ -292,9 +294,25 @@ def createFrame4():
         frame4.pack_forget()
         frame_menu.pack()
         return
+
+    def graphNumberOfInfectedPerVaccine():
+        infectedPerVaccine = functions.getInfectedPerVaccineType(global_var.db_graph)
+        plt.figure(figsize=(9, 9))
+        plt.bar(list(infectedPerVaccine.keys()), infectedPerVaccine.values(), color='r')
+        plt.xticks(rotation=90)
+        plt.ylabel('Number of infected per vaccine type')
+        plt.show()
+        vaccinatedPerVaccine = functions.getNumberOfVaccinatedPerVaccine(global_var.db_graph)
+        mostEffectiveVaccine, lowestRatio = functions.getMostEffectiveVaccine(infectedPerVaccine, vaccinatedPerVaccine)
+        string = "The most effective vaccine is: " + mostEffectiveVaccine + " with a infected/total vaccinated ratio = " + str(lowestRatio)
+        label2_frame4 = Label(frame4, text=string, font="20", background="white", pady=100)
+        label2_frame4.pack()
+
     frame4 = Frame(global_var.root_window, bg="white")
     label_frame4 = Label(frame4, text="FRAME 4", font="20", background="white", pady=20)
     label_frame4.pack()
+    graph_it = Button(frame4, text="Graph number of infected per vaccine type!", command=graphNumberOfInfectedPerVaccine)
+    graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame4, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
     return frame4

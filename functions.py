@@ -10,10 +10,10 @@ import random as rm
 
 @dataclass
 class Person :
-    
+
     @staticmethod
     def createPerson(name, surname):
-        
+
         age = abs(int(np.random.normal(45, 30)))
 
         if(age > 12 and conf.vaccine_probability > random()):
@@ -39,7 +39,7 @@ class Place :
 
     name : str
     type : str
-    
+
 
 def returnRandomDate():
     start_date = conf.start_date
@@ -50,7 +50,7 @@ def returnRandomDate():
     random_number_of_days = rm.randrange(days_between_dates)
     random_date = start_date + datetime.timedelta(days=random_number_of_days)
 
-    return random_date
+    return str(random_date)
 
 def returnListOfDates():
     start_date = conf.start_date
@@ -67,9 +67,10 @@ def returnListOfDates():
 
     return dates
 
+
 #date trattata come stringa nel database
 def infectSinglePerson(db, name_infected, surname_infected, date_of_infection):
-    
+
     db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name AND n.p02_surname = $surname "
                         "SET n:Infected "
@@ -87,14 +88,14 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                             "WHERE a.p01_name = $name1 AND b.p01_name = $name2 "
                             "CREATE (a)-[r:FAMILY_CONTACT]->(b)"
                             , name1 = list_relatives[i].name, name2 = list_relatives[j].name)
-                    
+
                     #relazione inversa
                     """db.run("MATCH (a:Person), (b:Person) "
                             "WHERE a.p01_name = $name1 AND b.p01_name = $name2 "
                             "CREATE (a)<-[r:FAMILY_CONTACT]-(b)"
                             , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))"""
 
-        return     
+        return
 
 
     def createPlaces():
@@ -104,12 +105,12 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
         f_names = open('txts\\namesRight.txt', 'r')
         list_names = f_names.readlines()
-        
+
         progress_bar['value'] = 0
         progress_bar_label.config(text = "Creating places and relationships places-people...")
 
         for i in range(p):
-            
+
             choice = randint(1,3)
 
             if(choice == 1):
@@ -166,7 +167,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
                             "CREATE (a)-[r:MEETS {date: $random}]->(b)"
                             , randomname1 = list_names[randint(0, n)].strip('\n'), randomname2 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
-            
+
             progress_bar['value'] += 100 / (n / int(conf.proportion_n_of_relationship_n_of_people))
 
 
@@ -182,14 +183,14 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         progress_bar_label.configure(text="Infecting people...")
 
         for i in range(0, int(n / conf.proportion_n_of_people_n_of_infected)):
-           
+
            progress_bar['value'] += 100 / int(n / conf.proportion_n_of_people_n_of_infected)
-           
+
            name_infected = list_names[randint(0, n - 1)].strip('\n')
            matcher = NodeMatcher(db)
            person_infected = matcher.match("Person", p01_name = name_infected).first()
-           
-           #probability with 0 vaccines = 0,7 with one 0,5 
+
+           #probability with 0 vaccines = 0,7 with one 0,5
            probability_of_contagion = 0.7 if person_infected["p05_number_of_doses"] == 0 else conf.probability_of_infection_with_vaccine ** person_infected["p05_number_of_doses"]
 
            if (random() < probability_of_contagion):
@@ -198,12 +199,12 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                         "SET n:Infected "
                         "SET n.p06_infectionDate = $date"
                         , name = name_infected, date = str(returnRandomDate()))
-                
-        
-            
+
+
+
         return
 
-    
+
 
 
 
@@ -217,10 +218,10 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
     progress_bar['value'] = 0
 
     for i in range(n):
-        
+
         if (count_pop > n):
             break
-        
+
         family_list = []
         family_surname = f_surnames.readline().strip('\n')
 
@@ -236,18 +237,18 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                         "SET a.p04_vaccine = $vaccine "
                         "SET a.p05_number_of_doses = $number_of_doses"
                         , name = pater_familias.name, surname = family_surname, age = pater_familias.age, vaccine = pater_familias.vaccine, number_of_doses = pater_familias.number_of_doses)
-                        
-                        
+
+
 
         count_pop += 1
         progress_bar['value'] += 100 / n
-        
+
 
         for j in range(randint(0,10)):
-            
+
             parente = Person.createPerson(f_names.readline().strip('\n'), family_surname)
             family_list.append(parente)
-            
+
             db.run("CREATE (a:Person) "
                         "SET a.p01_name = $name "
                         "SET a.p02_surname = $surname "
@@ -262,7 +263,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
             if (count_pop > n):
                 break
 
-        
+
 
         createFamily(family_list)
 
@@ -274,8 +275,8 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
     if(infect_or_not == 1):
         infectPeople()
 
-        
-        
+
+
     progress_bar.pack_forget()
     progress_bar_label.pack_forget()
 
@@ -295,8 +296,50 @@ def createDictionaryNumberOfInfectedPerDay(db, dates):
     dict = {}
 
     for i in range(0, len(dates)):
-        
+
         dict[str(dates[i])] = db.run('match (n : Infected {p06_infectionDate : $date}) return count(*)', date = str(dates[i])).evaluate()
-      
+
     return dict
 
+def getInfectedPerVaccineType(db):
+
+    dictionary = {}
+
+    var = db.run('match (x:Infected) return x.p04_vaccine, count(*)').to_table()
+
+    for index, tupla in enumerate(var):
+        dictionary[tupla[0]] = tupla[1]
+
+    """
+    dictionary[str("no vaccine")] = db.run('match (x:Infected {p04_vaccine : $vaccine}) return count(*)', vaccine = "no vaccine").evaluate()
+
+    for i in range(0, len(conf.vaccines)):
+        dictionary[str(conf.vaccines[i])] = db.run('match (x:Infected {p04_vaccine : $vaccine}) return count(*)', vaccine = str(conf.vaccines[i])).evaluate()
+    """
+
+    return dictionary
+
+def getNumberOfVaccinatedPerVaccine(db):
+    dictionary = {}
+
+    var = db.run('match (x) return x.p04_vaccine, count(*)').to_table()
+
+    for index, tupla in enumerate(var):
+        if tupla[0] != "no vaccine" and tupla[0] is not None:
+            dictionary[tupla[0]] = tupla[1]
+
+    return dictionary
+
+def getMostEffectiveVaccine(infectedPerVaccine, vaccinatedPerVaccine):
+    lowestRatio = 1.01
+    bestVaccine = None
+    ratio = 0
+
+    for key, value in infectedPerVaccine.items():
+        if (key != "no vaccine"):
+            ratio = value / vaccinatedPerVaccine[key]
+            if ratio < lowestRatio:
+                lowestRatio = ratio
+                bestVaccine = key
+
+    return bestVaccine, lowestRatio
