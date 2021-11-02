@@ -50,7 +50,7 @@ def returnRandomDate():
     random_number_of_days = rm.randrange(days_between_dates)
     random_date = start_date + datetime.timedelta(days=random_number_of_days)
 
-    return random_date
+    return str(random_date)
 
 def returnListOfDates():
     start_date = conf.start_date
