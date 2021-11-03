@@ -38,4 +38,12 @@ type_of_places = ('Restaurant', 'Hospital', 'Theatre')
 
 proportion_n_of_people_n_of_place = 10 / 1
 proportion_n_of_relationship_n_of_people = 1 / 1
+#portion for creating test connection with person
+proportion_n_of_molecular_test_n_of_people = 1 / 10
+proportion_n_of_antigen_test_n_of_people = 1 / 20
+proportion_n_of_antibody_test_n_of_people = 1 / 50
+#portion of positivity per test
+proportion_n_of_positive_n_of_molecular_test = 1 / 10
+proportion_n_of_positive_n_of_antigen_test = 2 / 10
+proportion_n_of_positive_n_of_antibody_test = 5 / 10
 proportion_n_of_people_n_of_infected = 8 / 1

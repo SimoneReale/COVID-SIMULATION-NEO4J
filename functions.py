@@ -144,7 +144,6 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
         return
 
-
     def createMeetRelations():
 
         progress_bar['value'] = 0
@@ -161,6 +160,58 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
             progress_bar['value'] += 100 / (n / int(conf.proportion_n_of_relationship_n_of_people))
 
+
+        return
+
+    #todo:check simone
+    # Create the tre type of covid test possible
+    def createTestType():
+        progress_bar['value'] = 0
+        progress_bar_label.config(text="Creating 'Tests' Nodes...")
+        db.run("CREATE (:COVID_TEST:MOLECULAR_TEST),(:COVID_TEST:ANTIGEN_TEST),(:COVID_TEST:ANTIBODY_TEST)")
+        progress_bar['value'] = 100;
+        return
+
+    # todo:check simone
+    #Create the relation between covid test and
+    def createTestRelations():
+
+        progress_bar['value'] = 0
+        progress_bar_label.config(text = "Creating 'Tests' relationships...")
+
+        f_names = open('txts\\namesRight.txt', 'r')
+        list_names = f_names.readlines()
+
+        for i in range(0, int(n *(conf.proportion_n_of_molecular_test_n_of_people))):
+            db.run("MATCH (a:Person), (b:MOLECULAR_TEST) "
+                            "WHERE a.p01_name = $randomname1 "
+                            "CREATE (a)-[r:TEST {date: $random, result: $random2}]->(b)"
+                            , randomname1 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate(), random2 = randint(0,100)>100-100*conf.proportion_n_of_positive_n_of_molecular_test)
+
+            progress_bar['value'] = 30;
+        for i in range(0, int(n * (conf.proportion_n_of_antigen_test_n_of_people))):
+            db.run("MATCH (a:Person), (b:ANTIGEN_TEST) "
+                            "WHERE a.p01_name = $randomname1 "
+                            "CREATE (a)-[r:TEST {date: $random, result: $random2}]->(b)"
+                            , randomname1 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate(), random2 = randint(0,100)>100-100*conf.proportion_n_of_positive_n_of_antigen_test)
+
+            progress_bar['value'] = 60;
+        for i in range(0, int(n *(conf.proportion_n_of_antibody_test_n_of_people))):
+            db.run("MATCH (a:Person), (b:ANTIBODY_TEST) "
+                            "WHERE a.p01_name = $randomname1 "
+                            "CREATE (a)-[r:TEST {date: $random, result: $random2}]->(b)"
+                            , randomname1 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate(), random2 = randint(0,100)>100-100*conf.proportion_n_of_positive_n_of_antibody_test)
+
+            progress_bar['value'] = 90;
+
+        # rearrange test results
+        # infect positive person
+        db.run("match (a:Person)-[t:TEST{result:true}]-(b:COVID_TEST) WHERE NOT a:Infected SET a:Infected;");
+        #set infection date
+        db.run("match (a:Infected)-[t:TEST{result:true}]-(b:COVID_TEST) WHERE a:Infected AND a.p06_infectionDate < t.date  SET a.p06_infectionDate = t.date");
+        #remove infected for negative person
+        db.run("match (a:Person)-[t:TEST{result:false}]-(b:COVID_TEST) WHERE a.p06_infectionDate< t.date REMOVE a.p06_infectionDate, a:Infected;")
+        progress_bar['value'] = 100;
 
         return
 
@@ -262,6 +313,9 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
     createPlaces()
     createMeetRelations()
+
+    createTestType()
+    createTestRelations()
 
     if(infect_or_not == 1):
         infectPeople()
@@ -459,3 +513,16 @@ def findPeopleAtRisk(db):
         ORDER BY Date DESC
         """, exposure_interval = conf.exposure_interval
     ).data()
+
+
+
+
+def addCovidTest(db, name, surname, date, test_type, test_result):
+    #something to pass the covid typedirectly
+    db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+")"   
+           "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
+           "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected)"
+           "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate< r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
+           ,name=name, surname=surname,date=date, test_type=test_type, test_result=test_result)
+
+    ## "WITH n,r WHERE n.p06_infectionDate< r.date REMOVE n.p06_infectionDate, n:Infected; "

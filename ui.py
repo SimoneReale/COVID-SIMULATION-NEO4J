@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.ttk import Progressbar
 from tkinter.ttk import Treeview
+from tkcalendar import Calendar
 
 import functions
 import functions as func
@@ -184,7 +185,7 @@ def createMenuFrame():
     button_frameSimulation = Button(frame_menu, text="Simulate!", background="red", command=goToFrameSimulation, pady=15, padx=25)
     button_frameSimulation.pack()
 
-    button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
+    button_frame2 = Button(frame_menu, text="Add a Test", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
 
     button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
@@ -287,9 +288,44 @@ def createFrame2():
         frame2.pack_forget()
         frame_menu.pack()
         return
+    def addCovidTest():
+        result = (value_test_result.get()=="Positive")
+        t = Thread(target=func.addCovidTest, args=(global_var.db_graph, insert_name.get(), insert_surname.get(), cal.get_date(), value_test_type.get(), result))
+        t.start()
+        return
     frame2 = Frame(global_var.root_window, bg="white")
-    label_frame2 = Label(frame2, text="FRAME 2", font="20", background="white", pady=20)
+    label_frame2 = Label(frame2, text="ADD A NEW COVID TEST", font="Arial 20", background="white", pady=10)
     label_frame2.pack()
+    #name
+    Label(frame2, text="Insert the name of patient:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    insert_name = Entry(frame2, font="Arial 20")
+    insert_name.pack(pady=5)
+    #surname
+    Label(frame2, text="Insert the surname of patient:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    insert_surname = Entry(frame2, font="Arial 20")
+    insert_surname.pack(pady=5)
+    #test date
+    Label(frame2, text="Insert test date:", font='Arial 15', foreground="green", background="white", pady=5).pack()
+    cal= Calendar(frame2, date_pattern="yyyy-mm-dd")
+    cal.pack(pady=5)
+    #test type
+    Label(frame2, text="Insert test type:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    options_list_type = ["MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST"]
+    value_test_type = StringVar(frame2)
+    value_test_type.set("Select an Option")
+    test_type = OptionMenu(frame2, value_test_type, *options_list_type)
+    test_type.pack(pady=5)
+    #test result
+    Label(frame2, text="Insert test Result:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    options_list_result = ["Positive", "Negative"]
+    value_test_result = StringVar(frame2)
+    value_test_result.set("Select an Option")
+    test_type = OptionMenu(frame2, value_test_result, *options_list_result)
+    test_type.pack(pady=5)
+    #add button
+    button_add_test = Button(frame2, text="Add Test", command=addCovidTest)
+    button_add_test.pack()
+
     go_to_menu = Button(frame2, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
     return frame2
