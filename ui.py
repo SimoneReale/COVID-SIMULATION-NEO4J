@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 @dataclass
@@ -158,6 +159,10 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame2.pack()
         return
+    def goToFrame22():
+        frame_menu.pack_forget()
+        frame22.pack()
+        return
     def goToFrame3():
         frame_menu.pack_forget()
         frame3.pack()
@@ -187,6 +192,8 @@ def createMenuFrame():
 
     button_frame2 = Button(frame_menu, text="Add a Test", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
+    button_frame22 = Button(frame_menu, text="Place with most new case", background="yellow", command=goToFrame22, pady=15, padx=25)
+    button_frame22.pack()
 
     button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
@@ -330,6 +337,52 @@ def createFrame2():
     go_to_menu.pack()
     return frame2
 
+#frame shalby 2
+def createFrame22():
+    def goToMenu():
+        frame22.pack_forget()
+        frame_menu.pack()
+        return
+
+    def graphNumberOfInfectedPerPlace():
+        [data, labels] = functions.getInfectedPerPlaceType(global_var.db_graph)
+
+        # Wedge properties
+        wp = {'linewidth': 1, 'edgecolor': "green"}
+
+        # Creating autocpt arguments
+        def func(pct, allvalues):
+            absolute = int(pct / 100. * np.sum(allvalues))
+            return "{:.1f}%\n({:d} g)".format(pct, absolute)
+
+        # Creating plot
+        fig, ax = plt.subplots(figsize=(10, 7))
+        wedges, texts, autotexts = ax.pie(data,
+                                          autopct=lambda pct: func(pct, data),
+                                          labels=labels,
+                                          wedgeprops=wp,
+                                          textprops=dict(color="magenta"))
+
+        # Adding legend
+        ax.legend(wedges, labels,
+                  title="Places",
+                  loc="center left",
+                  bbox_to_anchor=(1, 0, 0.5, 1))
+
+        plt.setp(autotexts, size=8, weight="bold")
+        ax.set_title("Customizing pie chart")
+
+        # show plot
+        plt.show()
+    frame22 = Frame(global_var.root_window, bg="white")
+    label_frame22= Label(frame22, text="NUMBER OF INFECTED PER PLACE", font="20", background="white", pady=20)
+    label_frame22.pack()
+    graph_it = Button(frame22, text="Graph number of infected per place type", command=graphNumberOfInfectedPerPlace)
+    graph_it.pack(pady=40, padx=40)
+    go_to_menu = Button(frame22, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+
+    return frame22
 
 
 
@@ -462,6 +515,7 @@ if __name__ == "__main__":
     frame1 = createFrame1()
     frameSimulation = createFrameSimulation()
     frame2 = createFrame2()
+    frame22 = createFrame22()
     frame3 = createFrame3()
     frame4 = createFrame4()
     frame5 = createFrame5()

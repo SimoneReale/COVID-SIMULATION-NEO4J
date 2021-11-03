@@ -367,6 +367,28 @@ def getInfectedPerVaccineType(db):
 
     return dictionary
 
+
+def getInfectedPerPlaceType(db):
+
+    data=[]
+    labels =[]
+
+    var = db.run("match (x:Infected)-[r:VISITS]-(p:Place) WITH count(r) as c, p.p02_type as type  return type,c").to_table()
+
+    for index, tupla in enumerate(var):
+        labels.append(tupla[0])
+        data.append(tupla[1])
+
+
+    """
+    dictionary[str("no vaccine")] = db.run('match (x:Infected {p04_vaccine : $vaccine}) return count(*)', vaccine = "no vaccine").evaluate()
+
+    for i in range(0, len(conf.vaccines)):
+        dictionary[str(conf.vaccines[i])] = db.run('match (x:Infected {p04_vaccine : $vaccine}) return count(*)', vaccine = str(conf.vaccines[i])).evaluate()
+    """
+
+    return [data,labels]
+
 def getNumberOfVaccinatedPerVaccine(db):
     dictionary = {}
 
@@ -519,7 +541,8 @@ def findPeopleAtRisk(db):
 
 def addCovidTest(db, name, surname, date, test_type, test_result):
     #something to pass the covid typedirectly
-    db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+")"   
+    db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+")"
+           "WHERE NOT () "           
            "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
            "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected)"
            "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate< r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
