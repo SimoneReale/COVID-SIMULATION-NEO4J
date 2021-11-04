@@ -71,20 +71,16 @@ def infectSinglePerson(db, name_infected, date_of_infection):
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
-    def createFamily(list_relatives):
-        for i in range(0, len(list_relatives)):
-            for j in range(i+1, len(list_relatives)):
-                if (7 < randint(0, 10)):
-                    db.run("MATCH (a:Person), (b:Person) "
-                            "WHERE a.p01_name = $name1 AND b.p01_name = $name2 "
-                            "CREATE (a)-[r:FAMILY_CONTACT]->(b)"
-                            , name1 = list_relatives[i].name, name2 = list_relatives[j].name)
-
-                    #relazione inversa
-                    """db.run("MATCH (a:Person), (b:Person) "
-                            "WHERE a.p01_name = $name1 AND b.p01_name = $name2 "
-                            "CREATE (a)<-[r:FAMILY_CONTACT]-(b)"
-                            , name1 = list_relatives[i].get("name"), name2 = list_relatives[j].get("name"))"""
+    def createFamily():
+        #relazione bidirezionale
+        db.run("""
+                  match (a:Person), (b:Person) 
+                  where not (a)-[:FAMILY_CONTACT]-(b) and a.p01_name <> b.p01_name and a.p02_surname = b.p02_surname 
+                  create (a)-[:FAMILY_CONTACT]->(b)
+                  
+                  """
+        
+        )
 
         return
 
@@ -213,13 +209,11 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         if (count_pop > n):
             break
 
-        family_list = []
         family_surname = f_surnames.readline().strip('\n')
 
 
         pater_familias = Person.createPerson(f_names.readline().strip('\n'), family_surname)
 
-        family_list.append(pater_familias)
 
         db.run("CREATE (a:Person) "
                         "SET a.p01_name = $name "
@@ -238,7 +232,6 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         for j in range(randint(0,10)):
 
             parente = Person.createPerson(f_names.readline().strip('\n'), family_surname)
-            family_list.append(parente)
 
             db.run("CREATE (a:Person) "
                         "SET a.p01_name = $name "
@@ -256,7 +249,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
 
 
 
-        createFamily(family_list)
+        createFamily()
 
 
 
