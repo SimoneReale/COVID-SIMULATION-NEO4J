@@ -452,3 +452,78 @@ def findPeopleAtRisk(db):
         ORDER BY Date DESC
         """, exposure_interval = conf.exposure_interval
     ).data()
+
+
+
+def averageContactNumber(db):
+    var = db.run( 
+        """CALL {
+        MATCH (p:Infected)-[d2:VISITS]-(place:Place)-[d1:VISITS]-(unfortunateSoul:Person)
+        WHERE  p.p06_infectionDate <= d1.date AND d1.date = d2.date AND NOT unfortunateSoul:Infected
+        WITH  count(unfortunateSoul) AS total1
+        RETURN total1}
+
+        CALL {
+        MATCH (p2:Infected)-[d1:MEETS]-(unfortunateSoul:Person)
+        WHERE  p2.p06_infectionDate <= d1.date AND NOT unfortunateSoul:Infected
+        WITH  count(unfortunateSoul) AS total2
+        RETURN total2}
+
+        CAll{
+        MATCH (p3:Infected)-[d2:FAMILY_CONTACT]-(unfortunateSoul:Person)
+        WHERE NOT unfortunateSoul:Infected
+        WITH count(unfortunateSoul) AS total3
+        RETURN total3}
+
+        CALL{MATCH (N:Infected) RETURN count(N) as totalInfected}
+
+
+        RETURN total1 * 1.0 / totalInfected,
+        total2 * 1.0 / totalInfected,
+        total3 * 1.0 / totalInfected"""
+    ).data()
+
+    dictionary = {}
+
+    contactTypes = ["Contact at Place", "Contact by Application", "Family Contact"]
+
+    for i in range(0,3) :
+        dictionary[contactTypes[i]] = round(((list(var[0].values()))[i]), 1)
+
+    print(dictionary.values())
+
+    return dictionary
+
+
+def commandAddNewDose(db, name, surname, vaccine):
+    result = ""
+
+    if vaccine == "PF" :
+        vaccine = 'Pfizer'
+    elif vaccine == "AS" :
+        vaccine = 'Astrazeneca'
+    elif vaccine == "MO" :
+        vaccine = 'Moderna'
+    elif vaccine == "SP" :
+        vaccine = 'Sputnik'
+    else :
+        return "Vaccine not Found"
+
+    command = 'MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '", p04_vaccine : "' + vaccine + '"})' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses' + '\nUNION' + '\nMATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + '\nWHERE n.p04_vaccine <> "' + vaccine + '"' + '\nSET n.p05_number_of_doses = 1, n.p04_vaccine = "' + vaccine + '"'
+
+    db.run(command)
+
+    var = db.run('MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + 'RETURN n.p01_name, n.p02_surname, n.p04_vaccine, n.p05_number_of_doses').data()
+    
+    if len(var) > 0 :
+        var = list(var[0].values())
+        var[0] = var[0] + " "
+        var[1] = var[1] + " : "
+        var[2] = var[2] + ", "
+        var[3] = str(var[3]) + " dose(s)"
+        for i in range(len(var)) :
+            result = result + str(var[i])
+    else :
+        result = "Individual not found"
+
+    return result

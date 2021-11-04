@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter
+
 
 
 @dataclass
@@ -169,6 +171,9 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame5.pack()
         return
+    def goToFrame10():
+        frame_menu.pack_forget()
+        frame10.pack()
 
     frame_menu = Frame(global_var.root_window, bg="white")
     label_menu = Label(frame_menu, text="MENU", font="Arial 30", background="white", pady=40)
@@ -195,6 +200,9 @@ def createMenuFrame():
 
     button_frame5 = Button(frame_menu, text="Go to frame 5", background="pink", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
+
+    button_frame10 = Button(frame_menu, text="Go to frame 10", background="pink", command=goToFrame10, pady=15, padx=25)
+    button_frame10.pack()
 
     button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=85)
     button_quit.pack()
@@ -403,14 +411,76 @@ def createFrame5():
         frame5.pack_forget()
         frame_menu.pack()
         return
+
+    def averageNumOfPeopleMetByType():
+        metByType = functions.averageContactNumber(global_var.db_graph)
+        left = [1,2,3]
+        height = list(metByType.values())
+        labels = list(metByType.keys())
+        plt.figure(figsize=(7, 7))
+        plt.bar(left, height, tick_label = labels, width=0.8, color=['red', 'blue', 'green'])
+        for index in range(len(left)):
+            plt.text(1+index, height[index], str(height[index]))
+        plt.xticks(rotation=0)
+        plt.ylabel('Number of people met by an infected person, by type of contact')
+        plt.show()
+
     frame5 = Frame(global_var.root_window, bg="white")
     label_frame5 = Label(frame5, text="FRAME 5", font="20", background="white", pady=20)
     label_frame5.pack()
+    graph_it = Button(frame5, text="Histogram: average number of people met by an infected one, by kind of contact", command=averageNumOfPeopleMetByType)
+    graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame5, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
+
     return frame5
 
 
+#frame vitobello2
+def createFrame10():
+    def goToMenu():
+        frame10.pack_forget()
+        frame_menu.pack()
+        return
+
+    def getInput():
+        name = e1.get().upper()
+        surname = e2.get().upper()
+        vaccine = e3.get().upper()[0:2]
+        result = functions.commandAddNewDose(global_var.db_graph, name, surname, vaccine)
+        string = "Command Result -> " + result
+        label2_frame10.configure(text=string)
+
+    frame10 = Frame(global_var.root_window, bg="white")
+    label_frame10 = Label(frame10, text="FRAME 10", font="20", background="white", pady=20)
+    label_frame10.pack()
+    go_to_menu = Button(frame10, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+
+    labelA1 = Label(frame10, text="First Name")
+    labelA1.pack()
+    e1 = Entry(frame10)
+    e1.pack()
+
+    labelA2 = Label(frame10, text="Last Name")
+    labelA2.pack()
+    e2 = Entry(frame10)
+    e2.pack()
+
+    labelA3 = Label(frame10, text="Vaccine Type\n(Pfizer, Moderna, Astrazeneca, Sputnik)")
+    labelA3.pack()
+    e3 = Entry(frame10)
+    e3.pack()
+
+    submit = Button(frame10, text="submit", command=getInput)
+    submit.pack()
+
+    string = ""
+    label2_frame10 = Label(frame10, text=string, font="20", background="white", pady=100)
+    label2_frame10.pack()
+
+
+    return frame10
 
 
 
@@ -429,5 +499,6 @@ if __name__ == "__main__":
     frame3 = createFrame3()
     frame4 = createFrame4()
     frame5 = createFrame5()
+    frame10 = createFrame10()
 
     global_var.root_window.mainloop()
