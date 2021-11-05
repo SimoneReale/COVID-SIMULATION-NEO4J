@@ -76,6 +76,8 @@ def createLoginFrame():
     label_insert_pass = Label(frame_login, text="Insert your password:", font='Arial 15', foreground="green", background="white", pady=20)
     label_insert_pass.pack()
     insert_pass = Entry(frame_login, font="Arial 20", show="*")
+    #Remove this eventually
+    insert_pass.insert(0, conf.password)
     insert_pass.pack(pady=5)
 
     button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=15, padx=55)
