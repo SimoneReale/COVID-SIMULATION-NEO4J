@@ -527,3 +527,6 @@ def commandAddNewDose(db, name, surname, vaccine):
         result = "Individual not found"
 
     return result
+
+def commandInfectFamilies(db):
+    db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected')

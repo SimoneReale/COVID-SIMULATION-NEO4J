@@ -171,6 +171,10 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame5.pack()
         return
+    def goToFrame9():
+        frame_menu.pack_forget()
+        frame9.pack()
+        return
     def goToFrame10():
         frame_menu.pack_forget()
         frame10.pack()
@@ -200,6 +204,9 @@ def createMenuFrame():
 
     button_frame5 = Button(frame_menu, text="Go to frame 5", background="pink", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
+
+    button_frame9 = Button(frame_menu, text="Go to frame 9", background="green", command=goToFrame9, pady=15, padx=25)
+    button_frame9.pack()
 
     button_frame10 = Button(frame_menu, text="Go to frame 10", background="pink", command=goToFrame10, pady=15, padx=25)
     button_frame10.pack()
@@ -436,6 +443,31 @@ def createFrame5():
     return frame5
 
 
+#frame urso
+def createFrame9():
+    def goToMenu():
+        frame9.pack_forget()
+        frame_menu.pack()
+        return
+
+    def infectFamilies():
+        functions.commandInfectFamilies(global_var.db_graph)
+
+
+    frame9 = Frame(global_var.root_window, bg="white")
+    label_frame9 = Label(frame9, text="FRAME 9", font="20", background="white", pady=20)
+    label_frame9.pack()
+    graph_it = Button(frame9, text="Infect all families with at least one infected person!", command=infectFamilies)
+    graph_it.pack(pady=40, padx=40)
+    go_to_menu = Button(frame9, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+    string = ""
+    label2_frame9 = Label(frame9, text=string, font="20", background="white", pady=100)
+    label2_frame9.pack()
+
+    return frame9
+
+
 #frame vitobello2
 def createFrame10():
     def goToMenu():
@@ -499,6 +531,7 @@ if __name__ == "__main__":
     frame3 = createFrame3()
     frame4 = createFrame4()
     frame5 = createFrame5()
+    frame9 = createFrame9()
     frame10 = createFrame10()
 
     global_var.root_window.mainloop()
