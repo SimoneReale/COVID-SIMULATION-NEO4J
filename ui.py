@@ -165,6 +165,10 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame3.pack()
         return
+    def goToFrameAddContact():
+        frame_menu.pack_forget()
+        frameAddContact.pack()
+        return
     def goToFrame4():
         frame_menu.pack_forget()
         frame4.pack()
@@ -200,6 +204,9 @@ def createMenuFrame():
 
     button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
+
+    button_frameAddContact = Button(frame_menu, text="Add new contact", background="orange", command=goToFrameAddContact, pady=15, padx=25)
+    button_frameAddContact.pack()
 
     button_frame4 = Button(frame_menu, text="Go to frame 4", background="green", command=goToFrame4, pady=15, padx=25)
     button_frame4.pack()
@@ -360,9 +367,45 @@ def createFrame3():
     return frame3
 
 
+def createFrameAddContact():
+    def goToMenu():
+        frameAddContact.pack_forget()
+        frame_menu.pack()
+        return
+    def addContact():
+        log = func.addContact(
+            global_var.db_graph,
+            entries['First Name'].get(),
+            entries['Last Name'].get(),
+            entries['First Name of the other'].get(),
+            entries['Last name of the other'].get(),
+            entries['Date of contact'].get(),
+            entries['Place of contact'].get()
+        )
+        return print(log)
 
+    frameAddContact = Frame(global_var.root_window, bg="white")
+    label_frame3 = Label(frameAddContact, text="Add contact beetween people", font="20", background="white", pady=20)
+    label_frame3.pack()
 
+    entries = {
+        "First Name":               Entry(frameAddContact),
+        "Last Name":                Entry(frameAddContact),
+        "First Name of the other":  Entry(frameAddContact),
+        "Last name of the other":   Entry(frameAddContact),
+        "Date of contact":          Entry(frameAddContact),
+        "Place of contact":         Entry(frameAddContact)
+    }
+    for label, entry in entries.items():
+        Label(frameAddContact, text = label).pack()
+        entry.pack()
 
+    add_contact = Button(frameAddContact, text="Add Contact", command=addContact)
+    add_contact.pack()
+
+    go_to_menu = Button(frameAddContact, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+    return frameAddContact
 
 
 
@@ -531,6 +574,7 @@ if __name__ == "__main__":
     frameSimulation = createFrameSimulation()
     frame2 = createFrame2()
     frame3 = createFrame3()
+    frameAddContact = createFrameAddContact()
     frame4 = createFrame4()
     frame5 = createFrame5()
     frame9 = createFrame9()

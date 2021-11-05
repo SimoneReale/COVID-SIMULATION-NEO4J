@@ -74,12 +74,12 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
     def createFamily():
         #relazione bidirezionale
         db.run("""
-                  match (a:Person), (b:Person) 
-                  where not (a)-[:FAMILY_CONTACT]-(b) and a.p01_name <> b.p01_name and a.p02_surname = b.p02_surname 
+                  match (a:Person), (b:Person)
+                  where not (a)-[:FAMILY_CONTACT]-(b) and a.p01_name <> b.p01_name and a.p02_surname = b.p02_surname
                   create (a)-[:FAMILY_CONTACT]->(b)
-                  
+
                   """
-        
+
         )
 
         return
@@ -456,7 +456,7 @@ def findPeopleAtRisk(db):
 
 
 def averageContactNumber(db):
-    var = db.run( 
+    var = db.run(
         """CALL {
         MATCH (p:Infected)-[d2:VISITS]-(place:Place)-[d1:VISITS]-(unfortunateSoul:Person)
         WHERE  p.p06_infectionDate <= d1.date AND d1.date = d2.date AND NOT unfortunateSoul:Infected
@@ -514,7 +514,7 @@ def commandAddNewDose(db, name, surname, vaccine):
     db.run(command)
 
     var = db.run('MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + 'RETURN n.p01_name, n.p02_surname, n.p04_vaccine, n.p05_number_of_doses').data()
-    
+
     if len(var) > 0 :
         var = list(var[0].values())
         var[0] = var[0] + " "
@@ -530,3 +530,24 @@ def commandAddNewDose(db, name, surname, vaccine):
 
 def commandInfectFamilies(db):
     db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected')
+
+def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
+    if (fn_A != "" and ln_A != "" and date != ""):
+        if (fn_B == "" and ln_B == "" and place != ""):
+            db.run(
+                """
+                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
+                CREATE (a)-[r:VISITS {date: $date}]->(p)
+                """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
+            )
+            return "Created VISITS relationship"
+        elif (fn_B != "" and ln_B != "" and place == ""):
+            db.run(
+                """
+                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
+                CREATE (a)-[r:MEETS {date: $date}]->(b)
+                """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
+            )
+            return "Created MEETS relationship"
+    else:
+        return "Invalid query paramenters"
