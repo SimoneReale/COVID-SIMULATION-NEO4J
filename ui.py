@@ -531,8 +531,7 @@ def createFrame10():
     frame10 = Frame(global_var.root_window, bg="white")
     label_frame10 = Label(frame10, text="FRAME 10", font="20", background="white", pady=20)
     label_frame10.pack()
-    go_to_menu = Button(frame10, text="Go to Menu", command=goToMenu)
-    go_to_menu.pack()
+    
 
     labelA1 = Label(frame10, text="First Name")
     labelA1.pack()
@@ -551,6 +550,9 @@ def createFrame10():
 
     submit = Button(frame10, text="submit", command=getInput)
     submit.pack()
+
+    go_to_menu = Button(frame10, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
 
     string = ""
     label2_frame10 = Label(frame10, text=string, font="20", background="white", pady=100)

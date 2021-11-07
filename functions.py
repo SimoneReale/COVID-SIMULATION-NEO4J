@@ -49,24 +49,28 @@ def returnRandomDate():
 
     return str(random_date)
 
-def returnListOfDates():
-
-    dates = []
-
-    for i in range(0, conf.days_between_dates + 1):
-        dates.append(conf.start_date + datetime.timedelta(days=i))
-
-    return dates
-
 
 #date trattata come stringa nel database
-def infectSinglePerson(db, name_infected, date_of_infection):
+def infectSinglePerson(db, name_infected, date_of_infection, *args, **kwargs):
 
-    db.run("MATCH (n : Person) "
+    if(kwargs.get('place', None) != None):
+        print('Sono dentro ' +name_infected)
+        db.run("MATCH (n : Person) "
+                        "WHERE n.p01_name = $name "
+                        "SET n:Infected "
+                        "SET n.p06_infectionDate = $date "
+                        "SET n.p07_infectionPlace = $place"
+                        , name = name_infected,  date = str(date_of_infection), place = kwargs.get('place'))
+
+    else:
+        db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name "
                         "SET n:Infected "
                         "SET n.p06_infectionDate = $date"
                         , name = name_infected,  date = str(date_of_infection))
+
+
+    
     return
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
@@ -147,13 +151,19 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         progress_bar_label.config(text = "Creating 'Meets' relationships...")
 
         f_names = open('txts\\namesRight.txt', 'r')
+        f_streets = open('txts\\places.txt')
         list_names = f_names.readlines()
+        list_streets = f_streets.readlines()
+        num_streets = len(list_streets)
 
         for i in range(0, int(n / int(conf.proportion_n_of_relationship_n_of_people))):
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
-                            "CREATE (a)-[r:MEETS {date: $random}]->(b)"
-                            , randomname1 = list_names[randint(0, n)].strip('\n'), randomname2 = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
+                            "CREATE (a)-[r:MEETS {date: $random, place: $random_place}]->(b)"
+                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'), 
+                            randomname2 = list_names[randint(0, n - 1)].strip('\n'), 
+                            random = returnRandomDate(),
+                            random_place = list_streets[randint(0, num_streets - 1)].strip('\n'))
 
             progress_bar['value'] += 100 / (n / int(conf.proportion_n_of_relationship_n_of_people))
 
@@ -406,7 +416,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
         for person_name in list:
             df_family = db.run('MATCH (n:Infected {p01_name : $name})-[f : FAMILY_CONTACT]-(b:Person) WHERE not b : Infected RETURN b.p01_name, b.p05_number_of_doses', name = person_name).data()
             for curr_date in current_list_of_dates:
-                df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = $date RETURN b.p01_name, b.p05_number_of_doses', name = person_name, date = curr_date).data()
+                df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = $date RETURN b.p01_name, b.p05_number_of_doses, f.place', name = person_name, date = curr_date).data()
 
 
             for p in df_family:
@@ -417,7 +427,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             for z in df_meets:
                 probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                 if(probability_of_contagion > random()):
-                    infectSinglePerson(db, z["b.p01_name"], str(date))
+                    infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
 
 
 
