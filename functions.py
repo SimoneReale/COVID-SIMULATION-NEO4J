@@ -47,27 +47,26 @@ def returnRandomDate():
     random_number_of_days = rm.randrange(conf.days_between_dates)
     random_date = conf.start_date + datetime.timedelta(days=random_number_of_days)
 
-    return str(random_date)
+    return random_date
 
 
-#date trattata come stringa nel database
+
 def infectSinglePerson(db, name_infected, date_of_infection, *args, **kwargs):
 
     if(kwargs.get('place', None) != None):
-        print('Sono dentro ' +name_infected)
         db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name "
                         "SET n:Infected "
-                        "SET n.p06_infectionDate = $date "
+                        "SET n.p06_infectionDate = date($date) "
                         "SET n.p07_infectionPlace = $place"
-                        , name = name_infected,  date = str(date_of_infection), place = kwargs.get('place'))
+                        , name = name_infected,  date = date_of_infection, place = kwargs.get('place'))
 
     else:
         db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name "
                         "SET n:Infected "
-                        "SET n.p06_infectionDate = $date"
-                        , name = name_infected,  date = str(date_of_infection))
+                        "SET n.p06_infectionDate = date($date)"
+                        , name = name_infected,  date = date_of_infection)
 
 
     
@@ -113,7 +112,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                 for j in range(0, abs(int(np.random.normal(p, 10)))):
                     db.run("MATCH (a:Person), (b:Place) "
                             "WHERE b.p01_name = $name2 AND a.p01_name = $randomname "
-                            "CREATE (a)-[r:VISITS {date: $random}]->(b)"
+                            "CREATE (a)-[r:VISITS {date: date($random)}]->(b)"
                             , name2 = "Restaurant " +str(i), randomname = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
 
 
@@ -125,7 +124,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                 for j in range(0, abs(int(np.random.normal(p, 10)))):
                     db.run("MATCH (a:Person), (b:Place) "
                             "WHERE b.p01_name = $name2 AND a.p01_name = $randomname "
-                            "CREATE (a)-[r:VISITS {date: $random}]->(b)"
+                            "CREATE (a)-[r:VISITS {date: date($random)}]->(b)"
                             , name2 = "Hospital " +str(i) , randomname = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
 
             if(choice == 3):
@@ -136,7 +135,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                 for j in range(0, abs(int(np.random.normal(p, 10)))):
                     db.run("MATCH (a:Person), (b:Place) "
                             "WHERE b.p01_name = $name2 AND a.p01_name = $randomname "
-                            "CREATE (a)-[r:VISITS {date: $random}]->(b)"
+                            "CREATE (a)-[r:VISITS {date: date($random)}]->(b)"
                             , name2 = "Theatre " +str(i),  randomname = list_names[randint(0, n)].strip('\n'), random = returnRandomDate())
 
 
@@ -159,7 +158,7 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         for i in range(0, int(n / int(conf.proportion_n_of_relationship_n_of_people))):
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
-                            "CREATE (a)-[r:MEETS {date: $random, place: $random_place}]->(b)"
+                            "CREATE (a)-[r:MEETS {date: date($random), place: $random_place}]->(b)"
                             , randomname1 = list_names[randint(0, n - 1)].strip('\n'), 
                             randomname2 = list_names[randint(0, n - 1)].strip('\n'), 
                             random = returnRandomDate(),
@@ -194,8 +193,8 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
                 db.run("MATCH (n : Person) "
                         "WHERE n.p01_name = $name "
                         "SET n:Infected "
-                        "SET n.p06_infectionDate = $date"
-                        , name = name_infected, date = str(returnRandomDate()))
+                        "SET n.p06_infectionDate = date($date)"
+                        , name = name_infected, date = returnRandomDate())
 
 
 
@@ -292,7 +291,7 @@ def createDictionaryNumberOfInfectedPerDay(db):
     var2 = db.run('match (x:Infected) return x.p06_infectionDate, count(*)').to_table()
 
     for index, tupla in enumerate(var2):
-        dictionary[tupla[0]] = tupla[1]
+        dictionary[str(tupla[0])] = tupla[1]
 
     dictionary = dict(sorted(dictionary.items()))
 
@@ -353,8 +352,8 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
-            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_no_vax)
-            , date = str(conf.start_date))
+            "SET n.p06_infectionDate = date($date)", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_no_vax)
+            , date = conf.start_date)
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 1 "
@@ -362,8 +361,8 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
-            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_1_vax)
-            , date = str(conf.start_date))
+            "SET n.p06_infectionDate = date($date)", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_1_vax)
+            , date = conf.start_date)
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 2 "
@@ -371,8 +370,8 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
-            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_2_vax)
-            , date = str(conf.start_date))
+            "SET n.p06_infectionDate = date($date)", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_2_vax)
+            , date = conf.start_date)
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 3 "
@@ -380,8 +379,8 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
-            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_3_vax)
-            , date = str(conf.start_date))
+            "SET n.p06_infectionDate = date($date)", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_3_vax)
+            , date = conf.start_date)
 
     db.run( "MATCH (n : Person) "
             "WHERE n.p05_number_of_doses = 4 "
@@ -389,8 +388,8 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
             "ORDER BY r "
             "LIMIT $initial_number "
             "SET n : Infected "
-            "SET n.p06_infectionDate = $date", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_4_vax)
-            , date = str(conf.start_date))
+            "SET n.p06_infectionDate = date($date)", initial_number = int(initial_number_of_infected * conf.proportion_of_people_initially_infected_4_vax)
+            , date = conf.start_date)
 
 
 
@@ -416,7 +415,30 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
         for person_name in list:
             df_family = db.run('MATCH (n:Infected {p01_name : $name})-[f : FAMILY_CONTACT]-(b:Person) WHERE not b : Infected RETURN b.p01_name, b.p05_number_of_doses', name = person_name).data()
             for curr_date in current_list_of_dates:
-                df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = $date RETURN b.p01_name, b.p05_number_of_doses, f.place', name = person_name, date = curr_date).data()
+                df_meets = db.run('MATCH (n:Infected {p01_name : $name})-[f : MEETS]-(b:Person) WHERE not b : Infected and f.date = date($date) RETURN b.p01_name, b.p05_number_of_doses, f.place', name = person_name, date = curr_date).data()
+                for z in df_meets:
+                    probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
+                    if(probability_of_contagion > random()):
+                        infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
+                
+                df_places = db.run("""MATCH (a:Person {p01_name : $person})-[f:VISITS {date : date($date)}]-(n:Place) return n.p01_name""", person = person_name, date = curr_date).data()
+                list_places = [d['n.p01_name'] for d in df_places]
+
+                list_contact_place = []
+
+                for place in list_places:
+                        people = db.run("""MATCH (b:Person)-[f:VISITS {date : date($date)}]-(n:Place{p01_name : $place_name}) 
+                        where b.p01_name <> $name and not b:Infected
+                        return b.p01_name, b.p05_number_of_doses, n.p01_name""", name = person_name, place_name = place, date = curr_date).data()
+
+                        list_contact_place = list_contact_place + people
+
+
+                for p in list_contact_place:
+                    probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
+                    if(probability_of_contagion > random()):
+                        infectSinglePerson(db, p["b.p01_name"], str(date), place = p["n.p01_name"])
+
 
 
             for p in df_family:
@@ -424,12 +446,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, p["b.p01_name"], str(date))
 
-            for z in df_meets:
-                probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
-                if(probability_of_contagion > random()):
-                    infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
+            
 
-
+                
 
 
 
@@ -547,7 +566,7 @@ def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
             db.run(
                 """
                 MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
-                CREATE (a)-[r:VISITS {date: $date}]->(p)
+                CREATE (a)-[r:VISITS {date: date($date)}]->(p)
                 """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
             )
             return "Created VISITS relationship"
@@ -555,7 +574,7 @@ def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
             db.run(
                 """
                 MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
-                CREATE (a)-[r:MEETS {date: $date}]->(b)
+                CREATE (a)-[r:MEETS {date: date($date)}]->(b)
                 """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
             )
             return "Created MEETS relationship"
