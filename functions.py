@@ -487,19 +487,19 @@ def findPeopleAtRisk(db):
 def averageContactNumber(db):
     var = db.run(
         """CALL {
-        MATCH (p:Infected)-[d2:VISITS]-(place:Place)-[d1:VISITS]-(unfortunateSoul:Person)
+        MATCH (p:Infected)-[d2:VISITS]->(place:Place)<-[d1:VISITS]-(unfortunateSoul:Person)
         WHERE  p.p06_infectionDate <= d1.date AND d1.date = d2.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total1
         RETURN total1}
 
         CALL {
-        MATCH (p2:Infected)-[d1:MEETS]-(unfortunateSoul:Person)
+        MATCH (p2:Infected)-[d1:MEETS]->(unfortunateSoul:Person)
         WHERE  p2.p06_infectionDate <= d1.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total2
         RETURN total2}
 
         CAll{
-        MATCH (p3:Infected)-[d2:FAMILY_CONTACT]-(unfortunateSoul:Person)
+        MATCH (p3:Infected)-[d2:FAMILY_CONTACT]->(unfortunateSoul:Person)
         WHERE NOT unfortunateSoul:Infected
         WITH count(unfortunateSoul) AS total3
         RETURN total3}
