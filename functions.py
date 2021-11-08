@@ -538,7 +538,7 @@ def commandAddNewDose(db, name, surname, vaccine):
     else :
         return "Vaccine not Found"
 
-    command = 'MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '", p04_vaccine : "' + vaccine + '"})' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses' + '\nUNION' + '\nMATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + '\nWHERE n.p04_vaccine <> "' + vaccine + '"' + '\nSET n.p05_number_of_doses = 1, n.p04_vaccine = "' + vaccine + '"'
+    command = 'MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '", p04_vaccine : "' + vaccine + '"})' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses' + '\nUNION' + '\nMATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + '\nWHERE n.p04_vaccine <> "' + vaccine + '"' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses, n.p04_vaccine = "' + vaccine + '"'
 
     db.run(command)
 
