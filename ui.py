@@ -335,12 +335,12 @@ def createFrame3():
 
     def goToMenu():
         frame3.pack_forget()
+        tree.pack_forget()
         frame_menu.pack()
         return
     def findPeopleAtRisk():
         data  = func.findPeopleAtRisk(global_var.db_graph)
-
-        tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
+        tree.pack_forget()
         tree.pack()
         tree.heading(1, text="Name")
         tree.heading(2, text="Surname")
@@ -360,6 +360,7 @@ def createFrame3():
     frame3 = Frame(global_var.root_window, bg="white")
     label_frame3 = Label(frame3, text="Analysis of infection spread", font="20", background="white", pady=20)
     label_frame3.pack()
+    tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
     findPeopleAtRisk = Button(frame3, text="Find possible infected", command=findPeopleAtRisk)
     findPeopleAtRisk.pack()
     go_to_menu = Button(frame3, text="Go to Menu", command=goToMenu)
