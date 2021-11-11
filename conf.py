@@ -10,7 +10,7 @@ password = "sr"
 #initial date and final date
 
 start_date = datetime.date(2020, 3, 1)
-end_date = datetime.date(2020, 3, 31)
+end_date = datetime.date(2020, 3, 15)
 time_between_dates = end_date - start_date
 days_between_dates = time_between_dates.days
 
@@ -20,7 +20,7 @@ exposure_interval = 10
 vaccines = ('Pfizer', 'Astrazeneca', 'Moderna', 'Sputnik')
 vaccine_probability = 0.7
 #1 vaccine 0,5 2 vaccines 0,5 x 0,5 = 0,25
-probability_of_infection_with_vaccine = 0.65
+probability_of_infection_with_vaccine = 0.3
 
 #simulation parameters
 proportion_of_people_initially_infected_no_vax = 0.6

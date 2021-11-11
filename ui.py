@@ -5,12 +5,15 @@ from tkcalendar import Calendar
 
 import functions
 import functions as func
+import py2neo
 from py2neo import Graph
 import conf
 from dataclasses import dataclass
 from threading import Thread
 from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter
+
 import numpy as np
 
 
@@ -76,6 +79,8 @@ def createLoginFrame():
     label_insert_pass = Label(frame_login, text="Insert your password:", font='Arial 15', foreground="green", background="white", pady=20)
     label_insert_pass.pack()
     insert_pass = Entry(frame_login, font="Arial 20", show="*")
+    #Remove this eventually
+    insert_pass.insert(0, conf.password)
     insert_pass.pack(pady=5)
 
     button_login = Button(frame_login, text="Login", command=loginAndChangeFrame, pady=15, padx=55)
@@ -167,6 +172,10 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame3.pack()
         return
+    def goToFrameAddContact():
+        frame_menu.pack_forget()
+        frameAddContact.pack()
+        return
     def goToFrame4():
         frame_menu.pack_forget()
         frame4.pack()
@@ -175,6 +184,13 @@ def createMenuFrame():
         frame_menu.pack_forget()
         frame5.pack()
         return
+    def goToFrame9():
+        frame_menu.pack_forget()
+        frame9.pack()
+        return
+    def goToFrame10():
+        frame_menu.pack_forget()
+        frame10.pack()
 
     frame_menu = Frame(global_var.root_window, bg="white")
     label_menu = Label(frame_menu, text="MENU", font="Arial 30", background="white", pady=40)
@@ -198,11 +214,20 @@ def createMenuFrame():
     button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
 
+    button_frameAddContact = Button(frame_menu, text="Add new contact", background="orange", command=goToFrameAddContact, pady=15, padx=25)
+    button_frameAddContact.pack()
+
     button_frame4 = Button(frame_menu, text="Go to frame 4", background="green", command=goToFrame4, pady=15, padx=25)
     button_frame4.pack()
 
     button_frame5 = Button(frame_menu, text="Go to frame 5", background="pink", command=goToFrame5, pady=15, padx=25)
     button_frame5.pack()
+
+    button_frame9 = Button(frame_menu, text="Go to frame 9", background="green", command=goToFrame9, pady=15, padx=25)
+    button_frame9.pack()
+
+    button_frame10 = Button(frame_menu, text="Go to frame 10", background="pink", command=goToFrame10, pady=15, padx=25)
+    button_frame10.pack()
 
     button_quit = Button(frame_menu, text="Quit", command=quit, pady=15, padx=85)
     button_quit.pack()
@@ -400,12 +425,12 @@ def createFrame3():
 
     def goToMenu():
         frame3.pack_forget()
+        tree.pack_forget()
         frame_menu.pack()
         return
     def findPeopleAtRisk():
         data  = func.findPeopleAtRisk(global_var.db_graph)
-
-        tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
+        tree.pack_forget()
         tree.pack()
         tree.heading(1, text="Name")
         tree.heading(2, text="Surname")
@@ -425,6 +450,7 @@ def createFrame3():
     frame3 = Frame(global_var.root_window, bg="white")
     label_frame3 = Label(frame3, text="Analysis of infection spread", font="20", background="white", pady=20)
     label_frame3.pack()
+    tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
     findPeopleAtRisk = Button(frame3, text="Find possible infected", command=findPeopleAtRisk)
     findPeopleAtRisk.pack()
     go_to_menu = Button(frame3, text="Go to Menu", command=goToMenu)
@@ -432,9 +458,50 @@ def createFrame3():
     return frame3
 
 
+def createFrameAddContact():
+    def goToMenu():
+        frameAddContact.pack_forget()
+        frame_menu.pack()
+        return
+    def addContact():
+        try:
+            log = func.addContact(
+                global_var.db_graph,
+                entries['First Name'].get(),
+                entries['Last Name'].get(),
+                entries['First Name of the other'].get(),
+                entries['Last name of the other'].get(),
+                entries['Date'].get(),
+                entries['Place'].get()
+            )
+        except py2neo.errors.ClientError as Ex:
+            log = "Invalid query parameters"
+        label_output = Label(frameAddContact, text=log, font='Arial 14', background="white", foreground="black")
+        label_output.pack()
+        return
 
+    frameAddContact = Frame(global_var.root_window, bg="white")
+    label_frame3 = Label(frameAddContact, text="Add contact beetween people", font="20", background="white", pady=20)
+    label_frame3.pack()
 
+    entries = {
+        "First Name":               Entry(frameAddContact),
+        "Last Name":                Entry(frameAddContact),
+        "First Name of the other":  Entry(frameAddContact),
+        "Last name of the other":   Entry(frameAddContact),
+        "Date":                     Entry(frameAddContact),
+        "Place":                   Entry(frameAddContact)
+    }
+    for label, entry in entries.items():
+        Label(frameAddContact, text = label).pack()
+        entry.pack()
 
+    add_contact = Button(frameAddContact, text="Add Contact", command=addContact)
+    add_contact.pack()
+
+    go_to_menu = Button(frameAddContact, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+    return frameAddContact
 
 
 
@@ -492,14 +559,103 @@ def createFrame5():
         frame5.pack_forget()
         frame_menu.pack()
         return
+
+    def averageNumOfPeopleMetByType():
+        metByType = functions.averageContactNumber(global_var.db_graph)
+        left = [1,2,3]
+        height = list(metByType.values())
+        labels = list(metByType.keys())
+        plt.figure(figsize=(7, 7))
+        plt.bar(left, height, tick_label = labels, width=0.8, color=['red', 'blue', 'green'])
+        for index in range(len(left)):
+            plt.text(1+index, height[index], str(height[index]))
+        plt.xticks(rotation=0)
+        plt.ylabel('Number of people met by an infected person, by type of contact')
+        plt.show()
+
     frame5 = Frame(global_var.root_window, bg="white")
     label_frame5 = Label(frame5, text="FRAME 5", font="20", background="white", pady=20)
     label_frame5.pack()
+    graph_it = Button(frame5, text="Histogram: average number of people met by an infected one, by kind of contact", command=averageNumOfPeopleMetByType)
+    graph_it.pack(pady=40, padx=40)
     go_to_menu = Button(frame5, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
+
     return frame5
 
 
+#frame urso
+def createFrame9():
+    def goToMenu():
+        frame9.pack_forget()
+        frame_menu.pack()
+        return
+
+    def infectFamilies():
+        functions.commandInfectFamilies(global_var.db_graph)
+
+
+    frame9 = Frame(global_var.root_window, bg="white")
+    label_frame9 = Label(frame9, text="FRAME 9", font="20", background="white", pady=20)
+    label_frame9.pack()
+    graph_it = Button(frame9, text="Infect all families with at least one infected person!", command=infectFamilies)
+    graph_it.pack(pady=40, padx=40)
+    go_to_menu = Button(frame9, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+    string = ""
+    label2_frame9 = Label(frame9, text=string, font="20", background="white", pady=100)
+    label2_frame9.pack()
+
+    return frame9
+
+
+#frame vitobello2
+def createFrame10():
+    def goToMenu():
+        frame10.pack_forget()
+        frame_menu.pack()
+        return
+
+    def getInput():
+        name = e1.get().upper()
+        surname = e2.get().upper()
+        vaccine = e3.get().upper()[0:2]
+        result = functions.commandAddNewDose(global_var.db_graph, name, surname, vaccine)
+        string = "Command Result -> " + result
+        label2_frame10.configure(text=string)
+
+    frame10 = Frame(global_var.root_window, bg="white")
+    label_frame10 = Label(frame10, text="FRAME 10", font="20", background="white", pady=20)
+    label_frame10.pack()
+
+
+    labelA1 = Label(frame10, text="First Name")
+    labelA1.pack()
+    e1 = Entry(frame10)
+    e1.pack()
+
+    labelA2 = Label(frame10, text="Last Name")
+    labelA2.pack()
+    e2 = Entry(frame10)
+    e2.pack()
+
+    labelA3 = Label(frame10, text="Vaccine Type\n(Pfizer, Moderna, Astrazeneca, Sputnik)")
+    labelA3.pack()
+    e3 = Entry(frame10)
+    e3.pack()
+
+    submit = Button(frame10, text="submit", command=getInput)
+    submit.pack()
+
+    go_to_menu = Button(frame10, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+
+    string = ""
+    label2_frame10 = Label(frame10, text=string, font="20", background="white", pady=100)
+    label2_frame10.pack()
+
+
+    return frame10
 
 
 
@@ -517,7 +673,10 @@ if __name__ == "__main__":
     frame2 = createFrame2()
     frame22 = createFrame22()
     frame3 = createFrame3()
+    frameAddContact = createFrameAddContact()
     frame4 = createFrame4()
     frame5 = createFrame5()
+    frame9 = createFrame9()
+    frame10 = createFrame10()
 
     global_var.root_window.mainloop()
