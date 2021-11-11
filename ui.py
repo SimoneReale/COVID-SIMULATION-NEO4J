@@ -4,6 +4,7 @@ from tkinter.ttk import Treeview
 
 import functions
 import functions as func
+import py2neo
 from py2neo import Graph
 import conf
 from dataclasses import dataclass
@@ -373,16 +374,21 @@ def createFrameAddContact():
         frame_menu.pack()
         return
     def addContact():
-        log = func.addContact(
-            global_var.db_graph,
-            entries['First Name'].get(),
-            entries['Last Name'].get(),
-            entries['First Name of the other'].get(),
-            entries['Last name of the other'].get(),
-            entries['Date of contact'].get(),
-            entries['Place of contact'].get()
-        )
-        return print(log)
+        try:
+            log = func.addContact(
+                global_var.db_graph,
+                entries['First Name'].get(),
+                entries['Last Name'].get(),
+                entries['First Name of the other'].get(),
+                entries['Last name of the other'].get(),
+                entries['Date'].get(),
+                entries['Place'].get()
+            )
+        except py2neo.errors.ClientError as Ex:
+            log = "Invalid query parameters"
+        label_output = Label(frameAddContact, text=log, font='Arial 14', background="white", foreground="black")
+        label_output.pack()
+        return
 
     frameAddContact = Frame(global_var.root_window, bg="white")
     label_frame3 = Label(frameAddContact, text="Add contact beetween people", font="20", background="white", pady=20)
@@ -393,8 +399,8 @@ def createFrameAddContact():
         "Last Name":                Entry(frameAddContact),
         "First Name of the other":  Entry(frameAddContact),
         "Last name of the other":   Entry(frameAddContact),
-        "Date of contact":          Entry(frameAddContact),
-        "Place of contact":         Entry(frameAddContact)
+        "Date":                     Entry(frameAddContact),
+        "Place":                   Entry(frameAddContact)
     }
     for label, entry in entries.items():
         Label(frameAddContact, text = label).pack()
@@ -531,7 +537,7 @@ def createFrame10():
     frame10 = Frame(global_var.root_window, bg="white")
     label_frame10 = Label(frame10, text="FRAME 10", font="20", background="white", pady=20)
     label_frame10.pack()
-    
+
 
     labelA1 = Label(frame10, text="First Name")
     labelA1.pack()
