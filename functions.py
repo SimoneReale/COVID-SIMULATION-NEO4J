@@ -568,22 +568,48 @@ def commandInfectFamilies(db):
     db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected')
 
 def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
+    def checkVisitsIsValid(fn_A, ln_A, place):
+        exists = db.run(
+            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place}) RETURN count(*)",
+            fn_A = fn_A, ln_A = ln_A, place = place
+        ).data()
+        return exists[0]['count(*)'] == 1
+
+    def checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B):
+        exists = db.run(
+            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B}) RETURN count(*)",
+            fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B
+        ).data()
+        return exists[0]['count(*)'] == 1
+
+
     if (fn_A != "" and ln_A != "" and date != ""):
+        #Case for VISITS
         if (fn_B == "" and ln_B == "" and place != ""):
-            db.run(
-                """
-                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
-                CREATE (a)-[r:VISITS {date: date($date)}]->(p)
-                """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
-            )
-            return "Created VISITS relationship"
+            if (checkVisitsIsValid(fn_A, ln_A, place)):
+                db.run(
+                    """
+                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
+                    CREATE (a)-[r:VISITS {date: date($date)}]->(p)
+                    """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
+                )
+                return "Created VISITS relationship"
+            else:
+                return "Some parameters do not exist"
+
+        #Case for MEETS
         elif (fn_B != "" and ln_B != "" and place == ""):
-            db.run(
-                """
-                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
-                CREATE (a)-[r:MEETS {date: date($date)}]->(b)
-                """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
-            )
-            return "Created MEETS relationship"
+            if(checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B)):
+                db.run(
+                    """
+                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
+                    CREATE (a)-[r:MEETS {date: date($date)}]->(b)
+                    """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
+                )
+                return "Created MEETS relationship"
+            else:
+                return "Some parameters do not exist"
+        else:
+            return "Invalid query parameters"
     else:
-        return "Invalid query paramenters"
+        return "Invalid query parameters"
