@@ -69,7 +69,7 @@ def infectSinglePerson(db, name_infected, date_of_infection, *args, **kwargs):
                         , name = name_infected,  date = date_of_infection)
 
 
-    
+
     return
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
@@ -159,8 +159,8 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
                             "CREATE (a)-[r:MEETS {date: date($random), place: $random_place}]->(b)"
-                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'), 
-                            randomname2 = list_names[randint(0, n - 1)].strip('\n'), 
+                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'),
+                            randomname2 = list_names[randint(0, n - 1)].strip('\n'),
                             random = returnRandomDate(),
                             random_place = list_streets[randint(0, num_streets - 1)].strip('\n'))
 
@@ -420,14 +420,14 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
-                
+
                 df_places = db.run("""MATCH (a:Person {p01_name : $person})-[f:VISITS {date : date($date)}]-(n:Place) return n.p01_name""", person = person_name, date = curr_date).data()
                 list_places = [d['n.p01_name'] for d in df_places]
 
                 list_contact_place = []
 
                 for place in list_places:
-                        people = db.run("""MATCH (b:Person)-[f:VISITS {date : date($date)}]-(n:Place{p01_name : $place_name}) 
+                        people = db.run("""MATCH (b:Person)-[f:VISITS {date : date($date)}]-(n:Place{p01_name : $place_name})
                         where b.p01_name <> $name and not b:Infected
                         return b.p01_name, b.p05_number_of_doses, n.p01_name""", name = person_name, place_name = place, date = curr_date).data()
 
@@ -446,9 +446,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, p["b.p01_name"], str(date))
 
-            
 
-                
+
+
 
 
 
@@ -465,20 +465,27 @@ def findPeopleAtRisk(db):
     return db.run(
         """
         CALL{
-          MATCH (a:Infected)-[v1:VISITS]-(p:Place)-[v2:VISITS]-(b:Person)
-          WHERE
-            duration.inDays(v1.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days AND
-            v1.date = v2.date
-          RETURN b.p01_name AS Name, b.p02_surname AS Surname, v2.date AS Date, p.p01_name AS Place
+            MATCH (a:Infected)-[v1:VISITS]-(p:Place)-[v2:VISITS]-(b:Person)
+            WITH duration.inDays(v1.date, a.p06_infectionDate).days AS DAYS_INTERVAL, b, v2, p
+            WHERE
+                NOT b:Infected AND
+                v1.date = v2.date AND
+                DAYS_INTERVAL > 0 AND
+                DAYS_INTERVAL < $exposure_interval
+            RETURN b.p01_name AS Name, b.p02_surname AS Surname, v2.date AS DateOfContact, p.p01_name AS PlaceOfContact
 
-          UNION
+            UNION
 
-          MATCH (a:Infected)-[r:MEETS]-(b:Person)
-          WHERE duration.inDays(r.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days
-          RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS Date, "unknown" AS Place
+            MATCH (a:Infected)-[r:MEETS]-(b:Person)
+            WITH duration.inDays(r.date, a.p06_infectionDate).days AS DAYS_INTERVAL, b, r
+            WHERE
+                NOT b:Infected AND
+                DAYS_INTERVAL > 0 AND
+                DAYS_INTERVAL < $exposure_interval
+            RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS DateOfContact, "unknown" AS PlaceOfContact
         }
-        RETURN Name, Surname, Date, Place
-        ORDER BY Date DESC
+        RETURN Name, Surname, DateOfContact, PlaceOfContact
+        ORDER BY DateOfContact DESC
         """, exposure_interval = conf.exposure_interval
     ).data()
 
@@ -487,19 +494,19 @@ def findPeopleAtRisk(db):
 def averageContactNumber(db):
     var = db.run(
         """CALL {
-        MATCH (p:Infected)-[d2:VISITS]-(place:Place)-[d1:VISITS]-(unfortunateSoul:Person)
+        MATCH (p:Infected)-[d2:VISITS]->(place:Place)<-[d1:VISITS]-(unfortunateSoul:Person)
         WHERE  p.p06_infectionDate <= d1.date AND d1.date = d2.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total1
         RETURN total1}
 
         CALL {
-        MATCH (p2:Infected)-[d1:MEETS]-(unfortunateSoul:Person)
+        MATCH (p2:Infected)-[d1:MEETS]->(unfortunateSoul:Person)
         WHERE  p2.p06_infectionDate <= d1.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total2
         RETURN total2}
 
         CAll{
-        MATCH (p3:Infected)-[d2:FAMILY_CONTACT]-(unfortunateSoul:Person)
+        MATCH (p3:Infected)-[d2:FAMILY_CONTACT]->(unfortunateSoul:Person)
         WHERE NOT unfortunateSoul:Infected
         WITH count(unfortunateSoul) AS total3
         RETURN total3}
@@ -538,7 +545,7 @@ def commandAddNewDose(db, name, surname, vaccine):
     else :
         return "Vaccine not Found"
 
-    command = 'MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '", p04_vaccine : "' + vaccine + '"})' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses' + '\nUNION' + '\nMATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + '\nWHERE n.p04_vaccine <> "' + vaccine + '"' + '\nSET n.p05_number_of_doses = 1, n.p04_vaccine = "' + vaccine + '"'
+    command = 'MATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '", p04_vaccine : "' + vaccine + '"})' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses' + '\nUNION' + '\nMATCH (n:Person {p01_name :"' + name + '", p02_surname : "' + surname + '"})' + '\nWHERE n.p04_vaccine <> "' + vaccine + '"' + '\nSET n.p05_number_of_doses = 1+n.p05_number_of_doses, n.p04_vaccine = "' + vaccine + '"'
 
     db.run(command)
 
@@ -561,22 +568,48 @@ def commandInfectFamilies(db):
     db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected')
 
 def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
+    def checkVisitsIsValid(fn_A, ln_A, place):
+        exists = db.run(
+            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place}) RETURN count(*)",
+            fn_A = fn_A, ln_A = ln_A, place = place
+        ).data()
+        return exists[0]['count(*)'] == 1
+
+    def checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B):
+        exists = db.run(
+            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B}) RETURN count(*)",
+            fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B
+        ).data()
+        return exists[0]['count(*)'] == 1
+
+
     if (fn_A != "" and ln_A != "" and date != ""):
+        #Case for VISITS
         if (fn_B == "" and ln_B == "" and place != ""):
-            db.run(
-                """
-                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
-                CREATE (a)-[r:VISITS {date: date($date)}]->(p)
-                """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
-            )
-            return "Created VISITS relationship"
+            if (checkVisitsIsValid(fn_A, ln_A, place)):
+                db.run(
+                    """
+                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
+                    CREATE (a)-[r:VISITS {date: date($date)}]->(p)
+                    """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
+                )
+                return "Created VISITS relationship"
+            else:
+                return "Some parameters do not exist"
+
+        #Case for MEETS
         elif (fn_B != "" and ln_B != "" and place == ""):
-            db.run(
-                """
-                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
-                CREATE (a)-[r:MEETS {date: date($date)}]->(b)
-                """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
-            )
-            return "Created MEETS relationship"
+            if(checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B)):
+                db.run(
+                    """
+                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
+                    CREATE (a)-[r:MEETS {date: date($date)}]->(b)
+                    """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
+                )
+                return "Created MEETS relationship"
+            else:
+                return "Some parameters do not exist"
+        else:
+            return "Invalid query parameters"
     else:
-        return "Invalid query paramenters"
+        return "Invalid query parameters"
