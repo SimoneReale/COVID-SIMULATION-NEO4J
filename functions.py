@@ -482,7 +482,7 @@ def findPeopleAtRisk(db):
                 NOT b:Infected AND
                 DAYS_INTERVAL > 0 AND
                 DAYS_INTERVAL < $exposure_interval
-            RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS DateOfContact, "unknown" AS PlaceOfContact
+            RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS DateOfContact, r.place AS PlaceOfContact
         }
         RETURN Name, Surname, DateOfContact, PlaceOfContact
         ORDER BY DateOfContact DESC
@@ -494,13 +494,13 @@ def findPeopleAtRisk(db):
 def averageContactNumber(db):
     var = db.run(
         """CALL {
-        MATCH (p:Infected)-[d2:VISITS]->(place:Place)<-[d1:VISITS]-(unfortunateSoul:Person)
+        MATCH (p:Infected)-[d2:VISITS]-(place:Place)-[d1:VISITS]-(unfortunateSoul:Person)
         WHERE  p.p06_infectionDate <= d1.date AND d1.date = d2.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total1
         RETURN total1}
 
         CALL {
-        MATCH (p2:Infected)-[d1:MEETS]->(unfortunateSoul:Person)
+        MATCH (p2:Infected)-[d1:MEETS]-(unfortunateSoul:Person)
         WHERE  p2.p06_infectionDate <= d1.date AND NOT unfortunateSoul:Infected
         WITH  count(unfortunateSoul) AS total2
         RETURN total2}
@@ -565,7 +565,7 @@ def commandAddNewDose(db, name, surname, vaccine):
     return result
 
 def commandInfectFamilies(db):
-    db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected')
+    db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected SET y.p06_infectionDate=$date', date = conf.end_date)
 
 def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
     def checkVisitsIsValid(fn_A, ln_A, place):
