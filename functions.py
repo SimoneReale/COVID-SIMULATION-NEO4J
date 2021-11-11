@@ -69,7 +69,7 @@ def infectSinglePerson(db, name_infected, date_of_infection, *args, **kwargs):
                         , name = name_infected,  date = date_of_infection)
 
 
-    
+
     return
 
 def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
@@ -159,8 +159,8 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
                             "CREATE (a)-[r:MEETS {date: date($random), place: $random_place}]->(b)"
-                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'), 
-                            randomname2 = list_names[randint(0, n - 1)].strip('\n'), 
+                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'),
+                            randomname2 = list_names[randint(0, n - 1)].strip('\n'),
                             random = returnRandomDate(),
                             random_place = list_streets[randint(0, num_streets - 1)].strip('\n'))
 
@@ -420,14 +420,14 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
-                
+
                 df_places = db.run("""MATCH (a:Person {p01_name : $person})-[f:VISITS {date : date($date)}]-(n:Place) return n.p01_name""", person = person_name, date = curr_date).data()
                 list_places = [d['n.p01_name'] for d in df_places]
 
                 list_contact_place = []
 
                 for place in list_places:
-                        people = db.run("""MATCH (b:Person)-[f:VISITS {date : date($date)}]-(n:Place{p01_name : $place_name}) 
+                        people = db.run("""MATCH (b:Person)-[f:VISITS {date : date($date)}]-(n:Place{p01_name : $place_name})
                         where b.p01_name <> $name and not b:Infected
                         return b.p01_name, b.p05_number_of_doses, n.p01_name""", name = person_name, place_name = place, date = curr_date).data()
 
@@ -446,9 +446,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, p["b.p01_name"], str(date))
 
-            
 
-                
+
+
 
 
 
@@ -465,20 +465,27 @@ def findPeopleAtRisk(db):
     return db.run(
         """
         CALL{
-          MATCH (a:Infected)-[v1:VISITS]-(p:Place)-[v2:VISITS]-(b:Person)
-          WHERE
-            duration.inDays(v1.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days AND
-            v1.date = v2.date
-          RETURN b.p01_name AS Name, b.p02_surname AS Surname, v2.date AS Date, p.p01_name AS Place
+            MATCH (a:Infected)-[v1:VISITS]-(p:Place)-[v2:VISITS]-(b:Person)
+            WITH duration.inDays(v1.date, a.p06_infectionDate).days AS DAYS_INTERVAL, b, v2, p
+            WHERE
+                NOT b:Infected AND
+                v1.date = v2.date AND
+                DAYS_INTERVAL > 0 AND
+                DAYS_INTERVAL < $exposure_interval
+            RETURN b.p01_name AS Name, b.p02_surname AS Surname, v2.date AS DateOfContact, p.p01_name AS PlaceOfContact
 
-          UNION
+            UNION
 
-          MATCH (a:Infected)-[r:MEETS]-(b:Person)
-          WHERE duration.inDays(r.date, a.p06_infectionDate).days < duration({days: $exposure_interval}).days
-          RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS Date, "unknown" AS Place
+            MATCH (a:Infected)-[r:MEETS]-(b:Person)
+            WITH duration.inDays(r.date, a.p06_infectionDate).days AS DAYS_INTERVAL, b, r
+            WHERE
+                NOT b:Infected AND
+                DAYS_INTERVAL > 0 AND
+                DAYS_INTERVAL < $exposure_interval
+            RETURN b.p01_name AS Name, b.p02_surname AS Surname, r.date AS DateOfContact, "unknown" AS PlaceOfContact
         }
-        RETURN Name, Surname, Date, Place
-        ORDER BY Date DESC
+        RETURN Name, Surname, DateOfContact, PlaceOfContact
+        ORDER BY DateOfContact DESC
         """, exposure_interval = conf.exposure_interval
     ).data()
 
