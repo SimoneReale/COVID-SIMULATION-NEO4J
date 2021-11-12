@@ -48,4 +48,4 @@ proportion_n_of_positive_n_of_antigen_test = 2 / 10
 proportion_n_of_positive_n_of_antibody_test = 5 / 10
 proportion_n_of_people_n_of_infected = 8 / 1
 #number of people that everyday makes a test
-proportion_n_of_people_n_of_daily_test = 10 / 1
+proportion_n_of_daily_test_n_of_people = 1 / 10

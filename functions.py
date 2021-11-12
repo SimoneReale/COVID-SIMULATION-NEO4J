@@ -513,7 +513,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
-                        addCovidTestOnlyName(db, z["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
+                        addCovidTestOnlyName(db, z["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 1)
+                    elif random() < conf.proportion_n_of_daily_test_n_of_people:
+                        addCovidTestOnlyName(db, z["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 0)
 
                 df_places = db.run("""MATCH (a:Person {p01_name : $person})-[f:VISITS {date : date($date)}]-(n:Place) return n.p01_name""", person = person_name, date = curr_date).data()
                 list_places = [d['n.p01_name'] for d in df_places]
@@ -532,7 +534,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, p["b.p01_name"], str(date), place = p["n.p01_name"])
-                        addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
+                        addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 1)
+                    elif random() < conf.proportion_n_of_daily_test_n_of_people:
+                        addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 0)
 
 
 
@@ -540,30 +544,9 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, p["b.p01_name"], str(date))
-                    addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
-
-
-
-        
-
-        df_test = db.run( "MATCH (n : Person) "
-                        "WITH n , rand() as r "
-                        "ORDER BY r "
-                        "RETURN n.p01_name, n.p05_number_of_doses "
-                        "LIMIT $initial_number"
-                        , initial_number = int(n / conf.proportion_n_of_people_n_of_daily_test)).data()
-
-        list_test = [u['n.p01_name'] for u in df_test]
-
-        
-        for name in list_test:
-            addCovidTestOnlyName(db, name, str(date), options_tuple_type[randint(0, len(options_tuple_type) - 1 )], randint(0,1)) 
-            
-            
-
-
-
-
+                    addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 1)
+                elif random() < conf.proportion_n_of_daily_test_n_of_people:
+                    addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], 0)
 
 
 
@@ -742,9 +725,7 @@ def addCovidTest(db, name, surname, date, test_type, test_result):
 def addCovidTestOnlyName(db, name, date, test_type, test_result):
     #something to pass the covid typedirectly
     db.run("MATCH (n : Person{p01_name:$name}), (t:"+test_type+") "
-           "CREATE (n)-[r:TEST{date:date($date),result:$test_result}]->(t) "
-           "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected) "
-           "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate < r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
+           "CREATE (n)-[r:TEST{date:date($date),result:$test_result}]->(t)"
            ,name=name, date=date, test_type=test_type, test_result= bool(test_result))
 
 
