@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.ttk import Progressbar
 from tkinter.ttk import Treeview
+from tkcalendar import Calendar
 
 import functions
 import functions as func
@@ -13,6 +14,7 @@ from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter
 
+import numpy as np
 
 
 @dataclass
@@ -143,7 +145,109 @@ def managePopulationFrame():
     return frame_manage_pop
 
 
+def createMenuFrameAlt():
+    def goToFrameCreatePop():
+        frame_menu.pack_forget()
+        frame_create_pop.pack()
+        return
+    def goToFrame1():
+        frame_menu.pack_forget()
+        frame1.pack()
+        return
+    def goToFrameSimulation():
+        frame_menu.pack_forget()
+        frameSimulation.pack()
+        return
+    def goToFrame2():
+        frame_menu.pack_forget()
+        frame2.pack()
+        return
+    def goToFrame22():
+        frame_menu.pack_forget()
+        frame22.pack()
+        return
+    def goToFrame3():
+        frame_menu.pack_forget()
+        frame3.pack()
+        return
+    def goToFrameAddContact():
+        frame_menu.pack_forget()
+        frameAddContact.pack()
+        return
+    def goToFrame4():
+        frame_menu.pack_forget()
+        frame4.pack()
+        return
+    def goToFrame5():
+        frame_menu.pack_forget()
+        frame5.pack()
+        return
+    def goToFrame9():
+        frame_menu.pack_forget()
+        frame9.pack()
+        return
+    def goToFrame10():
+        frame_menu.pack_forget()
+        frame10.pack()
 
+    frame_menu = Frame(global_var.root_window, height = 1200, width = 1200, bg="white", padx=400)
+    label_menu = Label(frame_menu, text="MENU", font="Arial 30", background="white", pady=40)
+    label_menu.place(x=-70, y=0)
+
+    #left
+    label_new_1 = Label(frame_menu, text="MANAGEMENT", font="Arial 20", background="white", pady=30)
+    label_new_1.place(x=-363, y=100)
+
+    button_frame_create_pop = Button(frame_menu, text="Manage population", background = "#0AFAE8", command=goToFrameCreatePop, pady=15, width=35) #padx=40
+    button_frame_create_pop.place(x=-391, y=170)
+
+    button_frameSimulation = Button(frame_menu, text="Simulate!", background="#0AFAB1", command=goToFrameSimulation, pady=15, width=35) #padx=69
+    button_frameSimulation.place(x=-391, y=240)
+
+
+    #QUERIES
+    label_new_2 = Label(frame_menu, text="QUERIES", font="Arial 20", background="white", pady=30)
+    label_new_2.place(x=-70, y=100)
+
+    button_frame1 = Button(frame_menu, text="QUERY 1\nNumber of infected per day", background="#FACB0A", command=goToFrame1, pady=15, width=35)
+    button_frame1.place(x=-129, y=170)
+
+    button_frame22 = Button(frame_menu, text="QUERY 2\nPlace with most new case", background="#FAA60A", command=goToFrame22, pady=15, width=35)
+    button_frame22.place(x=-129, y=240)
+
+    button_frame3 = Button(frame_menu, text="QUERY 3\nPossibly-infected people finder", background="#FA860A", command=goToFrame3, pady=15, width=35)
+    button_frame3.place(x=-129, y=310)
+
+    button_frame4 = Button(frame_menu, text="QUERY 4\nNumber of infected per vaccine type", background="#FA700A", command=goToFrame4, pady=15, width=35)
+    button_frame4.place(x=-129, y=380)
+
+    button_frame5 = Button(frame_menu, text="QUERY 5\nAvg num. of sane people met by an infected\none by kind of contact", background="#FA4B0A", command=goToFrame5, pady=15, width=35)
+    button_frame5.place(x=-129, y=450)
+
+
+    #COMMANDS
+    label_new_3 = Label(frame_menu, text="COMMANDS", font="Arial 20", background="white", pady=30)
+    label_new_3.place(x=177, y=100)
+
+    button_frame2 = Button(frame_menu, text="COMMAND 1\nAdd a Test", background="#CE0AFA", command=goToFrame2, pady=15, width=35)
+    button_frame2.place(x=134, y=170)
+
+    button_frameAddContact = Button(frame_menu, text="COMMAND 2\nAdd new contact", background="#A30AFA", command=goToFrameAddContact, pady=15, width=35)
+    button_frameAddContact.place(x=134, y=240)
+
+    button_frame9 = Button(frame_menu, text="COMMAND 3\nInfect all families with at least 1 infected", background="#890AFA", command=goToFrame9, pady=15, width=35)
+    button_frame9.place(x=134, y=310)
+
+    button_frame10 = Button(frame_menu, text="COMMAND 4\nAdd vaccine dose", background="#650AFA", command=goToFrame10, pady=15, width=35)
+    button_frame10.place(x=134, y=380)
+
+
+    button_quit = Button(frame_menu, text="QUIT", background="#FA0027", command=quit, pady=15, width=35)
+    button_quit.place(x = -130, y=600)
+
+    return frame_menu
+
+        
 
 def createMenuFrame():
     def goToFrameCreatePop():
@@ -161,6 +265,10 @@ def createMenuFrame():
     def goToFrame2():
         frame_menu.pack_forget()
         frame2.pack()
+        return
+    def goToFrame22():
+        frame_menu.pack_forget()
+        frame22.pack()
         return
     def goToFrame3():
         frame_menu.pack_forget()
@@ -200,8 +308,10 @@ def createMenuFrame():
     button_frameSimulation = Button(frame_menu, text="Simulate!", background="red", command=goToFrameSimulation, pady=15, padx=25)
     button_frameSimulation.pack()
 
-    button_frame2 = Button(frame_menu, text="Go to frame 2", background="yellow", command=goToFrame2, pady=15, padx=25)
+    button_frame2 = Button(frame_menu, text="Add a Test", background="yellow", command=goToFrame2, pady=15, padx=25)
     button_frame2.pack()
+    button_frame22 = Button(frame_menu, text="Place with most new case", background="yellow", command=goToFrame22, pady=15, padx=25)
+    button_frame22.pack()
 
     button_frame3 = Button(frame_menu, text="Go to the possibly-infected people finder", background="orange", command=goToFrame3, pady=15, padx=25)
     button_frame3.pack()
@@ -312,13 +422,94 @@ def createFrame2():
         frame2.pack_forget()
         frame_menu.pack()
         return
+    def addCovidTest():
+        result = (value_test_result.get()=="Positive")
+        t = Thread(target=func.addCovidTest, args=(global_var.db_graph, insert_name.get(), insert_surname.get(), cal.get_date(), value_test_type.get(), result))
+        t.start()
+        return
     frame2 = Frame(global_var.root_window, bg="white")
-    label_frame2 = Label(frame2, text="FRAME 2", font="20", background="white", pady=20)
+    label_frame2 = Label(frame2, text="ADD A NEW COVID TEST", font="Arial 20", background="white", pady=10)
     label_frame2.pack()
+    #name
+    Label(frame2, text="Insert the name of patient:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    insert_name = Entry(frame2, font="Arial 20")
+    insert_name.pack(pady=5)
+    #surname
+    Label(frame2, text="Insert the surname of patient:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    insert_surname = Entry(frame2, font="Arial 20")
+    insert_surname.pack(pady=5)
+    #test date
+    Label(frame2, text="Insert test date:", font='Arial 15', foreground="green", background="white", pady=5).pack()
+    cal= Calendar(frame2, date_pattern="yyyy-mm-dd")
+    cal.pack(pady=5)
+    #test type
+    Label(frame2, text="Insert test type:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    options_list_type = ["MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST"]
+    value_test_type = StringVar(frame2)
+    value_test_type.set("Select an Option")
+    test_type = OptionMenu(frame2, value_test_type, *options_list_type)
+    test_type.pack(pady=5)
+    #test result
+    Label(frame2, text="Insert test Result:", font='Arial 15', foreground="green",background="white", pady=5).pack()
+    options_list_result = ["Positive", "Negative"]
+    value_test_result = StringVar(frame2)
+    value_test_result.set("Select an Option")
+    test_type = OptionMenu(frame2, value_test_result, *options_list_result)
+    test_type.pack(pady=5)
+    #add button
+    button_add_test = Button(frame2, text="Add Test", command=addCovidTest)
+    button_add_test.pack()
+
     go_to_menu = Button(frame2, text="Go to Menu", command=goToMenu)
     go_to_menu.pack()
     return frame2
 
+#frame shalby 2
+def createFrame22():
+    def goToMenu():
+        frame22.pack_forget()
+        frame_menu.pack()
+        return
+
+    def graphNumberOfInfectedPerPlace():
+        [data, labels] = functions.getInfectedPerPlaceType(global_var.db_graph)
+
+        # Wedge properties
+        wp = {'linewidth': 1, 'edgecolor': "green"}
+
+        # Creating autocpt arguments
+        def func(pct, allvalues):
+            absolute = int(pct / 100. * np.sum(allvalues))
+            return "{:.1f}%\n({:d} g)".format(pct, absolute)
+
+        # Creating plot
+        fig, ax = plt.subplots(figsize=(10, 7))
+        wedges, texts, autotexts = ax.pie(data,
+                                          autopct=lambda pct: func(pct, data),
+                                          labels=labels,
+                                          wedgeprops=wp,
+                                          textprops=dict(color="magenta"))
+
+        # Adding legend
+        ax.legend(wedges, labels,
+                  title="Places",
+                  loc="center left",
+                  bbox_to_anchor=(1, 0, 0.5, 1))
+
+        plt.setp(autotexts, size=8, weight="bold")
+        ax.set_title("Customizing pie chart")
+
+        # show plot
+        plt.show()
+    frame22 = Frame(global_var.root_window, bg="white")
+    label_frame22= Label(frame22, text="NUMBER OF INFECTED PER PLACE", font="20", background="white", pady=20)
+    label_frame22.pack()
+    graph_it = Button(frame22, text="Graph number of infected per place type", command=graphNumberOfInfectedPerPlace)
+    graph_it.pack(pady=40, padx=40)
+    go_to_menu = Button(frame22, text="Go to Menu", command=goToMenu)
+    go_to_menu.pack()
+
+    return frame22
 
 
 
@@ -336,12 +527,12 @@ def createFrame3():
 
     def goToMenu():
         frame3.pack_forget()
+        tree.pack_forget()
         frame_menu.pack()
         return
     def findPeopleAtRisk():
         data  = func.findPeopleAtRisk(global_var.db_graph)
-
-        tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
+        tree.pack_forget()
         tree.pack()
         tree.heading(1, text="Name")
         tree.heading(2, text="Surname")
@@ -361,6 +552,7 @@ def createFrame3():
     frame3 = Frame(global_var.root_window, bg="white")
     label_frame3 = Label(frame3, text="Analysis of infection spread", font="20", background="white", pady=20)
     label_frame3.pack()
+    tree = Treeview(frame3, columns = (1,2,3,4), height = 25, show = "headings")
     findPeopleAtRisk = Button(frame3, text="Find possible infected", command=findPeopleAtRisk)
     findPeopleAtRisk.pack()
     go_to_menu = Button(frame3, text="Go to Menu", command=goToMenu)
@@ -575,12 +767,13 @@ if __name__ == "__main__":
     frame_login = createLoginFrame()
     frame_login.pack()
 
-    frame_menu = createMenuFrame()
+    frame_menu = createMenuFrameAlt()
     frame_create_pop = managePopulationFrame()
 
     frame1 = createFrame1()
     frameSimulation = createFrameSimulation()
     frame2 = createFrame2()
+    frame22 = createFrame22()
     frame3 = createFrame3()
     frameAddContact = createFrameAddContact()
     frame4 = createFrame4()
