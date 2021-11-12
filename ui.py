@@ -248,7 +248,7 @@ def createMenuFrameAlt():
 
     return frame_menu
 
-        
+
 
 def createMenuFrame():
     def goToFrameCreatePop():
@@ -564,22 +564,23 @@ def createFrame3():
 def createFrameAddContact():
     def goToMenu():
         frameAddContact.pack_forget()
+        label_output.pack_forget()
         frame_menu.pack()
         return
     def addContact():
         try:
             log = func.addContact(
                 global_var.db_graph,
-                entries['First Name'].get(),
-                entries['Last Name'].get(),
-                entries['First Name of the other'].get(),
-                entries['Last name of the other'].get(),
-                entries['Date'].get(),
+                entries['First Name'].get().upper(),
+                entries['Last Name'].get().upper(),
+                entries['First Name of the other'].get().upper(),
+                entries['Last name of the other'].get().upper(),
+                entries['Date'].get_date(),
                 entries['Place'].get()
             )
         except py2neo.errors.ClientError as Ex:
-            log = "Invalid query parameters"
-        label_output = Label(frameAddContact, text=log, font='Arial 14', background="white", foreground="black")
+            log = "Invalid Entries"
+        label_output.config(text=log)
         label_output.pack()
         return
 
@@ -592,18 +593,22 @@ def createFrameAddContact():
         "Last Name":                Entry(frameAddContact),
         "First Name of the other":  Entry(frameAddContact),
         "Last name of the other":   Entry(frameAddContact),
-        "Date":                     Entry(frameAddContact),
-        "Place":                   Entry(frameAddContact)
+        "Date":                     Calendar(frameAddContact, date_pattern="yyyy-mm-dd"),
+        "Place":                    Entry(frameAddContact)
     }
     for label, entry in entries.items():
         Label(frameAddContact, text = label).pack()
-        entry.pack()
+        entry.pack(pady=5)
 
     add_contact = Button(frameAddContact, text="Add Contact", command=addContact)
-    add_contact.pack()
+    add_contact.pack(pady=5)
 
     go_to_menu = Button(frameAddContact, text="Go to Menu", command=goToMenu)
-    go_to_menu.pack()
+    go_to_menu.pack(pady=5)
+
+    label_output = Label(frameAddContact, text="", font='14', background="white", foreground="black")
+    label_output.pack()
+
     return frameAddContact
 
 

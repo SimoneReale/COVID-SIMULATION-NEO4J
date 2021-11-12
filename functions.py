@@ -644,52 +644,54 @@ def commandAddNewDose(db, name, surname, vaccine):
 def commandInfectFamilies(db):
     db.run('MATCH (x:Person:Infected)-[:FAMILY_CONTACT]-(y:Person) SET y:Person:Infected SET y.p06_infectionDate=$date', date = conf.end_date)
 
+
+
 def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
-    def checkVisitsIsValid(fn_A, ln_A, place):
-        exists = db.run(
-            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place}) RETURN count(*)",
-            fn_A = fn_A, ln_A = ln_A, place = place
-        ).data()
-        return exists[0]['count(*)'] == 1
+    if (fn_A == "" or ln_A == "" or date == "" or place == ""):
+        return "Missing Entries"
 
-    def checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B):
-        exists = db.run(
-            "MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B}) RETURN count(*)",
-            fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B
-        ).data()
-        return exists[0]['count(*)'] == 1
+    isPersonA = db.run("MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}) RETURN a", fn_A = fn_A, ln_A = ln_A).data()
+    isPlace = db.run("MATCH (p:Place {p01_name: $place}) RETURN p", place = place).data()
+    isStreet = db.run("MATCH ()-[r:MEETS {place: $place}]-() RETURN r", place = place).data()
+    if(len(isPersonA) <= 0):
+        return "Some entries do not exist"
 
+    if(fn_B != "" and ln_B != ""):
+        isPersonB = db.run("MATCH (b:Person {p01_name: $fn_B, p02_surname: $ln_B}) RETURN b", fn_B = fn_B, ln_B = ln_B).data()
+        if (len(isPersonB) <= 0):
+            return "Some entries do not exist"
+        if (fn_A == fn_B and ln_A == ln_B):
+            return "Invalid Entries"
 
-    if (fn_A != "" and ln_A != "" and date != ""):
-        #Case for VISITS
-        if (fn_B == "" and ln_B == "" and place != ""):
-            if (checkVisitsIsValid(fn_A, ln_A, place)):
-                db.run(
-                    """
-                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
-                    CREATE (a)-[r:VISITS {date: date($date)}]->(p)
-                    """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
-                )
-                return "Created VISITS relationship"
-            else:
-                return "Some parameters do not exist"
-
-        #Case for MEETS
-        elif (fn_B != "" and ln_B != "" and place == ""):
-            if(checkMeetsIsValid(fn_A, ln_A, fn_B, ln_B)):
-                db.run(
-                    """
-                    MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
-                    CREATE (a)-[r:MEETS {date: date($date)}]->(b)
-                    """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date
-                )
-                return "Created MEETS relationship"
-            else:
-                return "Some parameters do not exist"
+        if (len(isPlace) > 0):
+            db.run(
+                """
+                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B}), (p:Place {p01_name: $place})
+                CREATE (a)-[:VISITS {date: date($date)}]->(p)<-[:VISITS {date: date($date)}]-(b)
+                """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date, place = place
+            )
+            return "Created double VISITS relationship"
+        elif (len(isStreet) > 0):
+            db.run(
+                """
+                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (b:Person {p01_name: $fn_B, p02_surname: $ln_B})
+                CREATE (a)-[:MEETS {date: date($date), place: $place}]->(b)
+                """, fn_A = fn_A, ln_A = ln_A, fn_B = fn_B, ln_B = ln_B, date = date, place = place
+            )
+            return "Created MEETS relationship"
         else:
-            return "Invalid query parameters"
+            return "Some entries do not exist"
     else:
-        return "Invalid query parameters"
+        if (len(isPlace) > 0):
+            db.run(
+                """
+                MATCH (a:Person {p01_name: $fn_A, p02_surname: $ln_A}), (p:Place {p01_name: $place})
+                CREATE (a)-[:VISITS {date: date($date)}]->(p)
+                """, fn_A = fn_A, ln_A = ln_A, date = date, place = place
+            )
+            return "Created VISITS relationship"
+        else:
+            return "Some entries do not exist"
 
 
 
@@ -697,7 +699,7 @@ def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
 def addCovidTest(db, name, surname, date, test_type, test_result):
     #something to pass the covid typedirectly
     db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+")"
-           "WHERE NOT () "           
+           "WHERE NOT () "
            "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
            "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected)"
            "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate< r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
