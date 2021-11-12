@@ -120,8 +120,9 @@ def managePopulationFrame():
     def delete():
         func.deleteDataset(global_var.db_graph)
 
-
+    #no possibility to start with infected people
     choice_infected = IntVar()
+    choice_infected = 0
 
     frame_manage_pop = Frame(global_var.root_window, bg = "white")
     label_program = Label(frame_manage_pop, text="Manage population", font="Arial 25", background="white", pady=40)
@@ -132,8 +133,8 @@ def managePopulationFrame():
     scale_pop.set(500)
     scale_pop.pack(pady=15)
     ChkBttn = Checkbutton(frame_manage_pop, variable=choice_infected, text="Start with some infected people", background="white")
-    ChkBttn.pack(padx = 5, pady = 15)
-    button_create_pop = Button(frame_manage_pop, text="Create population",command=create , pady=15, padx=15,)
+    #ChkBttn.pack(padx = 5, pady = 15)
+    button_create_pop = Button(frame_manage_pop, text="Create healthy population",command=create , pady=15, padx=15,)
     button_create_pop.pack()
     button_delete_pop = Button(frame_manage_pop, text="Kill everyone", command=delete , background="red", pady=25, padx=29, cursor="pirate")
     button_delete_pop.pack()
@@ -198,7 +199,7 @@ def createMenuFrameAlt():
     label_new_1 = Label(frame_menu, text="MANAGEMENT", font="Arial 20", background="white", pady=30)
     label_new_1.place(x=-363, y=100)
 
-    button_frame_create_pop = Button(frame_menu, text="Manage population", background = "#0AFAE8", command=goToFrameCreatePop, pady=15, width=35) #padx=40
+    button_frame_create_pop = Button(frame_menu, text="Create random healthy population", background = "#0AFAE8", command=goToFrameCreatePop, pady=15, width=35) #padx=40
     button_frame_create_pop.place(x=-391, y=170)
 
     button_frameSimulation = Button(frame_menu, text="Simulate!", background="#0AFAB1", command=goToFrameSimulation, pady=15, width=35) #padx=69
