@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pickle import FALSE, TRUE
 from random import randint, random
 from tkinter.ttk import Progressbar
 from py2neo import Graph, NodeMatcher
@@ -333,7 +334,6 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
     createMeetRelations()
 
     createTestType()
-    createTestRelations()
 
     if(infect_or_not == 1):
         infectPeople()
@@ -540,6 +540,24 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
 
 
 
+        """options_tuple_type = ["MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST"]
+
+        df_test = db.run( "MATCH (n : Person) "
+                        "WITH n , rand() as r "
+                        "ORDER BY r "
+                        "RETURN n.p01_name, n.p05_number_of_doses "
+                        "LIMIT $initial_number"
+                        , initial_number = int(n / conf.proportion_n_of_people_n_of_daily_test)).data()
+
+        list_test = [u['n.p01_name'] for u in df_test]
+
+        
+        for name in list_test:
+            test_result = TRUE if randint(0, 1) > 0 else FALSE
+            addCovidTestOnlyName(db, name, curr_date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], test_result) """
+            
+            
+
 
 
 
@@ -711,11 +729,25 @@ def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
 
 def addCovidTest(db, name, surname, date, test_type, test_result):
     #something to pass the covid typedirectly
-    db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+")"
+    db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+") "
            "WHERE NOT () "
            "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
-           "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected)"
-           "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate< r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
+           "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected) "
+           "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate < r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
            ,name=name, surname=surname,date=date, test_type=test_type, test_result=test_result)
+
+
+def addCovidTestOnlyName(db, name, date, test_type, test_result):
+    #something to pass the covid typedirectly
+    db.run("MATCH (n : Person{p01_name:$name}), (t:"+test_type+") "
+           "WHERE NOT () "
+           "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
+           "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected) "
+           "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate < r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
+           ,name=name, date=date, test_type=test_type, test_result=test_result)
+
+
+
+  
 
     ## "WITH n,r WHERE n.p06_infectionDate< r.date REMOVE n.p06_infectionDate, n:Infected; "

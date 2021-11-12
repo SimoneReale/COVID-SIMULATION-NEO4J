@@ -33,8 +33,8 @@ proportion_of_people_initially_infected_4_vax = 0.03
 
 
 
-
 type_of_places = ('Restaurant', 'Hospital', 'Theatre')
+type_of_test = ("MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST")
 
 proportion_n_of_people_n_of_place = 10 / 1
 proportion_n_of_relationship_n_of_people = 1 / 1
@@ -47,3 +47,5 @@ proportion_n_of_positive_n_of_molecular_test = 1 / 10
 proportion_n_of_positive_n_of_antigen_test = 2 / 10
 proportion_n_of_positive_n_of_antibody_test = 5 / 10
 proportion_n_of_people_n_of_infected = 8 / 1
+#number of people that everyday makes a test
+proportion_n_of_people_n_of_daily_test = 10 / 1
