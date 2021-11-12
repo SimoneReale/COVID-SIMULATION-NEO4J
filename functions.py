@@ -491,6 +491,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
     progress_bar.pack()
     progress_bar['value'] = 0
 
+    options_tuple_type = ["MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST"]
 
     for i in range(0, conf.days_between_dates):
 
@@ -512,6 +513,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if z["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** z["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, z["b.p01_name"], str(date), place = z["f.place"])
+                        addCovidTestOnlyName(db, z["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
 
                 df_places = db.run("""MATCH (a:Person {p01_name : $person})-[f:VISITS {date : date($date)}]-(n:Place) return n.p01_name""", person = person_name, date = curr_date).data()
                 list_places = [d['n.p01_name'] for d in df_places]
@@ -530,6 +532,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                     probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
                     if(probability_of_contagion > random()):
                         infectSinglePerson(db, p["b.p01_name"], str(date), place = p["n.p01_name"])
+                        addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
 
 
 
@@ -537,10 +540,11 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
                 probability_of_contagion = 0.35 if p["b.p05_number_of_doses"] == 0 else (conf.probability_of_infection_with_vaccine ** p["b.p05_number_of_doses"]) ** 3
                 if(probability_of_contagion > random()):
                     infectSinglePerson(db, p["b.p01_name"], str(date))
+                    addCovidTestOnlyName(db, p["b.p01_name"], date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], TRUE)
 
 
 
-        """options_tuple_type = ["MOLECULAR_TEST", "ANTIGEN_TEST", "ANTIBODY_TEST"]
+        
 
         df_test = db.run( "MATCH (n : Person) "
                         "WITH n , rand() as r "
@@ -553,8 +557,7 @@ def simulatePandemic(db, n, progress_bar, progress_bar_label, initial_number_of_
 
         
         for name in list_test:
-            test_result = TRUE if randint(0, 1) > 0 else FALSE
-            addCovidTestOnlyName(db, name, curr_date, options_tuple_type[randint(0, len(options_tuple_type) - 1 )], test_result) """
+            addCovidTestOnlyName(db, name, str(date), options_tuple_type[randint(0, len(options_tuple_type) - 1 )], randint(0,1)) 
             
             
 
@@ -730,21 +733,19 @@ def addContact(db, fn_A, ln_A, fn_B, ln_B, date, place):
 def addCovidTest(db, name, surname, date, test_type, test_result):
     #something to pass the covid typedirectly
     db.run("MATCH (n : Person{p01_name:$name, p02_surname:$surname}), (t:"+test_type+") "
-           "WHERE NOT () "
-           "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
+           "CREATE (n)-[r:TEST{date:date($date),result:$test_result}]->(t) "
            "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected) "
            "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate < r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
-           ,name=name, surname=surname,date=date, test_type=test_type, test_result=test_result)
+           ,name=name, surname=surname,date=date, test_type=test_type, test_result= bool(test_result))
 
 
 def addCovidTestOnlyName(db, name, date, test_type, test_result):
     #something to pass the covid typedirectly
     db.run("MATCH (n : Person{p01_name:$name}), (t:"+test_type+") "
-           "WHERE NOT () "
-           "CREATE (n)-[r:TEST{date:$date,result:$test_result}]->(t) "
+           "CREATE (n)-[r:TEST{date:date($date),result:$test_result}]->(t) "
            "FOREACH (p IN CASE WHEN r.result = true THEN[1] ELSE[] END | SET n.p06_infectionDate = r.date, n:Infected) "
            "FOREACH (p IN CASE WHEN (r.result = false AND n.p06_infectionDate < r.date) THEN[1] ELSE[] END |  REMOVE n.p06_infectionDate, n:Infected); "
-           ,name=name, date=date, test_type=test_type, test_result=test_result)
+           ,name=name, date=date, test_type=test_type, test_result= bool(test_result))
 
 
 
