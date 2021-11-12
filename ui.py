@@ -122,7 +122,7 @@ def managePopulationFrame():
 
     #no possibility to start with infected people
     choice_infected = IntVar()
-    choice_infected = 0
+    choice_infected.set(0)
 
     frame_manage_pop = Frame(global_var.root_window, bg = "white")
     label_program = Label(frame_manage_pop, text="Manage population", font="Arial 25", background="white", pady=40)
