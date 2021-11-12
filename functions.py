@@ -156,13 +156,28 @@ def createDataset(db, n, progress_bar, progress_bar_label, infect_or_not):
         num_streets = len(list_streets)
 
         for i in range(0, int(n / int(conf.proportion_n_of_relationship_n_of_people))):
+            
+            random1 = list_names[randint(0, n - 1)].strip('\n')
+            random2 = list_names[randint(0, n - 1)].strip('\n')
+            random_date = returnRandomDate()
+            random_p = list_streets[randint(0, num_streets - 1)].strip('\n')
+
             db.run("MATCH (a:Person), (b:Person) "
                             "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
                             "CREATE (a)-[r:MEETS {date: date($random), place: $random_place}]->(b)"
-                            , randomname1 = list_names[randint(0, n - 1)].strip('\n'),
-                            randomname2 = list_names[randint(0, n - 1)].strip('\n'),
-                            random = returnRandomDate(),
-                            random_place = list_streets[randint(0, num_streets - 1)].strip('\n'))
+                            , randomname1 = random1,
+                            randomname2 = random2,
+                            random = random_date,
+                            random_place = random_p)
+
+
+            db.run("MATCH (a:Person), (b:Person) "
+                            "WHERE b.p01_name = $randomname1 AND a.p01_name = $randomname2 AND b.p02_surname <> a.p02_surname "
+                            "CREATE (a)-[r:MEETS {date: date($random), place: $random_place}]->(b)"
+                            , randomname1 = random2,
+                            randomname2 = random1,
+                            random = random_date,
+                            random_place = random_p)
 
             progress_bar['value'] += 100 / (n / int(conf.proportion_n_of_relationship_n_of_people))
 
@@ -602,8 +617,6 @@ def averageContactNumber(db):
 
     for i in range(0,3) :
         dictionary[contactTypes[i]] = round(((list(var[0].values()))[i]), 1)
-
-    print(dictionary.values())
 
     return dictionary
 
