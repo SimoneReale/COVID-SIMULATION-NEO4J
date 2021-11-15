@@ -41,9 +41,9 @@ Check out the following youtube video to see the application in action!
 
 <p align="center">
   <img width="300" src="images/Main-Frame.jpg" alt="Main Frame" />
-  <br>
+
   <img width="300" src="images/Simulation.jpg" alt="Simulation" />
-  <br>
+
   <img width="300" src="images/Pie.jpg" alt="Pie Chart" />
   <br>
 </p>
